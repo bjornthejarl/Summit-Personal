@@ -2,7 +2,7 @@ import { InvoiceList } from '@/components/invoices/InvoiceList';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Invoices | Summit',
+  title: 'Invoices | vAlpha',
   description: 'Manage your business invoices',
 };
 
@@ -15,7 +15,7 @@ export default function InvoicesPage() {
           <p className="text-muted-foreground">Manage your client invoices</p>
         </div>
       </div>
-      
+
       <InvoiceList className="mt-6" />
     </div>
   );

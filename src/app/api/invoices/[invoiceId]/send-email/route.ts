@@ -148,7 +148,7 @@ export async function POST(
       // Send email using SMTP
       const result = await sendEmail({
         to: [invoiceData.client.email],
-        subject: `Invoice ${invoiceData.invoice.invoiceNumber} from ${invoiceData.company?.name || 'Summit Finance'}`,
+        subject: `Invoice ${invoiceData.invoice.invoiceNumber} from ${invoiceData.company?.name || 'vAlpha'}`,
         html: htmlContent,
         replyTo: sender.email,
       });

@@ -2,7 +2,7 @@ import { QuoteList } from '@/components/quotes/QuoteList';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Quotes | Summit',
+  title: 'Quotes | vAlpha',
   description: 'Manage your business quotes',
 };
 
@@ -15,7 +15,7 @@ export default function QuotesPage() {
           <p className="text-muted-foreground">Manage your client quotes</p>
         </div>
       </div>
-      
+
       <QuoteList className="mt-6" />
     </div>
   );

@@ -34,7 +34,7 @@ export default async function LoginPage({
       <div className="w-full max-w-md">
         <div className="flex flex-col items-center">
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Summit Finance Client Portal
+            vAlpha Client Portal
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
             Sign in to access your invoices and quotes
@@ -45,7 +45,7 @@ export default async function LoginPage({
           <LoginForm />
           <Button variant="ghost">
             <Link href="/auth/signin" className="text-sm text-gray-600 hover:text-gray-900">
-              Internal User? Login to Summit Finance
+              Internal User? Login to vAlpha
             </Link>
           </Button>
         </div>

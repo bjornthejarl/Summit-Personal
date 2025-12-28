@@ -3,8 +3,8 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: {
-    template: '%s | Kugie',
-    default: 'Kugie',
+    template: '%s | vAlpha',
+    default: 'vAlpha',
   },
   description: 'Invoice and accounting management system',
   icons: [

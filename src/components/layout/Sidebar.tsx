@@ -54,7 +54,7 @@ export function Sidebar() {
   return (
     <div className="w-64 bg-card h-screen p-4 border-r space-y-4 hidden md:block">
       <div className="text-2xl font-bold mb-4">
-        <Image src={logoSrc} alt="Summit" width={200} height={200} />
+        <Image src={logoSrc} alt="vAlpha" width={200} height={200} />
       </div>
       <nav className="space-y-4">
         {Object.entries(groupedNavItems).map(([group, items]) => (

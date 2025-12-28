@@ -17,7 +17,7 @@ export const config = {
    * Email configuration (SMTP)
    */
   email: {
-    fromName: process.env.SMTP_FROM_NAME || 'Summit Finance',
+    fromName: process.env.SMTP_FROM_NAME || 'vAlpha',
     fromEmail: process.env.SMTP_FROM_EMAIL,
   },
 };

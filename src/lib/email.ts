@@ -39,7 +39,7 @@ interface SendEmailResult {
 export async function sendEmail(options: SendEmailOptions): Promise<SendEmailResult> {
     const { to, subject, html, replyTo } = options;
 
-    const fromName = process.env.SMTP_FROM_NAME || 'Summit Finance';
+    const fromName = process.env.SMTP_FROM_NAME || 'vAlpha';
     const fromEmail = process.env.SMTP_FROM_EMAIL;
 
     if (!fromEmail) {

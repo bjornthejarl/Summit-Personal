@@ -9,8 +9,8 @@ import { NextAuthProvider } from "@/components/NextAuthProvider";
 
 export const metadata: Metadata = {
   title: {
-    template: '%s - Summit Finance',
-    default: 'Summit Finance',
+    template: '%s - vAlpha',
+    default: 'vAlpha',
   },
   description: "Financial essentials, nothing more.",
   icons: [
@@ -32,10 +32,10 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Summit',
+    title: 'vAlpha',
     description: 'Financial essentials, nothing more.',
-    creator: 'Summit',
-    images: ['https://summit.kugie.dev/og-image.png'],
+    creator: 'vAlpha',
+    images: ['/og-image.png'],
   },
 }
 

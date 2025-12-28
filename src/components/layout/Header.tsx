@@ -19,11 +19,11 @@ export function Header() {
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b bg-background px-4">
       <div className="flex md:hidden items-center">
-        <div className="text-xl font-bold">Summit</div>
+        <div className="text-xl font-bold">vAlpha</div>
       </div>
-      
+
       <div className="flex-1 md:flex-none"></div>
-      
+
       <div className="flex items-center gap-4">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

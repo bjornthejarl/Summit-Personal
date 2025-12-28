@@ -153,10 +153,10 @@ export async function POST(request: NextRequest) {
     // Send email using SMTP
     const emailResult = await sendReactEmail({
       to: email,
-      subject: `You've been invited to join ${company?.name || 'Summit Finance'}`,
+      subject: `You've been invited to join ${company?.name || 'vAlpha'}`,
       react: InvitationEmail({
         inviterName: session.user.name || 'Team Admin',
-        companyName: company?.name || 'Summit Finance',
+        companyName: company?.name || 'vAlpha',
         recipientName: name || undefined,
         role,
         acceptUrl,

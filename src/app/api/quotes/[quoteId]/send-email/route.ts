@@ -156,7 +156,7 @@ export async function POST(
     // Send the email using SMTP
     const result = await sendEmail({
       to: [quoteData.client.email],
-      subject: `Quote ${quoteData.quote.quoteNumber} from ${quoteData.company?.name || 'Summit Finance'}`,
+      subject: `Quote ${quoteData.quote.quoteNumber} from ${quoteData.company?.name || 'vAlpha'}`,
       html: htmlContent,
     });
 

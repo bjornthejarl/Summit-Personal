@@ -52,9 +52,9 @@ export function Sidebar() {
   }, {});
 
   return (
-    <div className="w-64 bg-card h-screen p-4 border-r hidden md:flex md:flex-col overflow-hidden">
-      <div className="text-2xl font-bold mb-4 flex-shrink-0">
-        <Image src={logoSrc} alt="vAlpha" width={200} height={200} />
+    <div className="w-64 bg-card h-screen py-2 px-4 border-r hidden md:flex md:flex-col overflow-hidden">
+      <div className="flex-shrink-0">
+        <Image src={logoSrc} alt="vAlpha" width={150} height={150} />
       </div>
       <nav className="space-y-4 flex-1 overflow-y-auto scrollbar-hide">
         {Object.entries(groupedNavItems).map(([group, items]) => (

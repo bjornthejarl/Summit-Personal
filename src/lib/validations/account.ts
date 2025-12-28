@@ -13,7 +13,7 @@ export const accountSchema = z.object({
   type: z.enum(['bank', 'credit_card', 'cash'], {
     errorMap: () => ({ message: 'Must be a valid account type: bank, credit_card, or cash' }),
   }),
-  currency: z.string().default('IDR'),
+  currency: z.string().default('USD'),
   accountNumber: z.string().optional().nullable(),
   initialBalance: z.coerce.number().default(0),
   currentBalance: z.coerce.number().optional(),

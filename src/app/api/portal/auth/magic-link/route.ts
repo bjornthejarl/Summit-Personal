@@ -4,10 +4,8 @@ import { saveLoginToken } from '@/lib/auth/client/utils';
 import { db } from '@/lib/db';
 import { clients } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
-import { Resend } from 'resend';
+import { sendReactEmail } from '@/lib/email';
 import { MagicLinkEmail } from '@/emails/MagicLinkEmail';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Validation schema for the request body
 const requestSchema = z.object({
@@ -55,9 +53,8 @@ export async function POST(request: NextRequest) {
     const baseUrl = process.env.NEXT_PUBLIC_URL || 'https://summitfinance.app';
     const verificationUrl = `${baseUrl}/portal/verify?token=${token}`;
 
-    // Send email
-    await resend.emails.send({
-      from: `${process.env.RESEND_FROM_NAME} <${process.env.RESEND_FROM_EMAIL || 'kugie@summitfinance.app'}>`,
+    // Send email using SMTP
+    const emailResult = await sendReactEmail({
       to: email,
       subject: 'Sign in to Your Client Portal',
       react: MagicLinkEmail({
@@ -65,6 +62,14 @@ export async function POST(request: NextRequest) {
         magicLink: verificationUrl,
       }),
     });
+
+    if (!emailResult.success) {
+      console.error('Error sending magic link email:', emailResult.error);
+      return NextResponse.json(
+        { error: 'Failed to send magic link email' },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json(
       { message: 'Magic link sent to your email' },
@@ -77,4 +82,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-} 
+}

@@ -4,9 +4,7 @@ import { authOptions } from '@/lib/auth/options';
 import { db } from '@/lib/db';
 import { companyInvitations, companies } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
-import { Resend } from 'resend';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
+import { sendEmail } from '@/lib/email';
 
 // DELETE /api/invitations/[invitationId] - Cancel an invitation
 export async function DELETE(
@@ -17,20 +15,20 @@ export async function DELETE(
     const session = await getServerSession(authOptions);
     const { invitationId } = await params;
     // Check authentication and permissions
-    if (!session?.user || !session.user.companyId || 
-        !session.user.permissions?.['users.invite']) {
+    if (!session?.user || !session.user.companyId ||
+      !session.user.permissions?.['users.invite']) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
     const companyId = parseInt(session.user.companyId);
-    
+
     if (isNaN(parseInt(invitationId))) {
       return NextResponse.json(
         { message: 'Invalid invitation ID' },
         { status: 400 }
       );
     }
-    
+
     // Get invitation details before updating
     const [invitation] = await db
       .select({
@@ -46,14 +44,14 @@ export async function DELETE(
           eq(companyInvitations.status, 'pending')
         )
       );
-    
+
     if (!invitation) {
       return NextResponse.json(
         { message: 'Invitation not found or already used/cancelled' },
         { status: 404 }
       );
     }
-    
+
     // Update invitation status to cancelled
     await db
       .update(companyInvitations)
@@ -68,16 +66,15 @@ export async function DELETE(
           eq(companyInvitations.status, 'pending')
         )
       );
-    
+
     // Get company information
     const [company] = await db
       .select({ name: companies.name })
       .from(companies)
       .where(eq(companies.id, companyId));
-    
-    // Send cancellation email
-    const { error } = await resend.emails.send({
-      from: `${process.env.RESEND_FROM_NAME} <${process.env.RESEND_FROM_EMAIL || 'kugie@summitfinance.app'}>`,
+
+    // Send cancellation email using SMTP
+    const result = await sendEmail({
       to: invitation.email,
       subject: `Invitation to ${company?.name || 'Our Company'} cancelled`,
       html: `
@@ -91,14 +88,14 @@ export async function DELETE(
         </div>
       `,
     });
-    
-    if (error) {
-      console.error('Error sending cancellation email:', error);
+
+    if (!result.success) {
+      console.error('Error sending cancellation email:', result.error);
       // We still cancelled the invitation, so we'll return success but log the email error
     }
-    
-    return NextResponse.json({ 
-      message: 'Invitation cancelled successfully' 
+
+    return NextResponse.json({
+      message: 'Invitation cancelled successfully'
     });
   } catch (error) {
     console.error('Error cancelling invitation:', error);
@@ -107,4 +104,4 @@ export async function DELETE(
       { status: 500 }
     );
   }
-} 
+}

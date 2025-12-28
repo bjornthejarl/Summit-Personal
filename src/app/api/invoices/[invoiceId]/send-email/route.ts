@@ -2,11 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { invoices, invoiceItems, clients, companies, users } from '@/lib/db/schema';
 import { and, eq } from 'drizzle-orm';
-import { Resend } from 'resend';
+import { sendEmail } from '@/lib/email';
 import { withAuth } from '@/lib/auth/getAuthInfo';
-
-// Initialize Resend with API key
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 // POST /api/invoices/[invoiceId]/send-email - Send invoice via email
 export async function POST(
@@ -79,9 +76,9 @@ export async function POST(
       };
 
       const formatCurrency = (amount: string | number) => {
-        return new Intl.NumberFormat('id-ID', {
+        return new Intl.NumberFormat('en-US', {
           style: 'currency',
-          currency: 'IDR',
+          currency: 'USD',
         }).format(Number(amount));
       };
 
@@ -148,20 +145,18 @@ export async function POST(
         </html>
       `;
 
-      // Send email using Resend
-      const { data, error } = await resend.emails.send({
-        from: `${process.env.RESEND_FROM_NAME} <${process.env.RESEND_FROM_EMAIL || 'invoice@summitfinance.app'}>`,
+      // Send email using SMTP
+      const result = await sendEmail({
         to: [invoiceData.client.email],
         subject: `Invoice ${invoiceData.invoice.invoiceNumber} from ${invoiceData.company?.name || 'Summit Finance'}`,
         html: htmlContent,
         replyTo: sender.email,
       });
 
-      if (error) {
-        console.error('Error sending invoice email:', JSON.stringify(error));
-        console.error('Error data:', JSON.stringify(data));
+      if (!result.success) {
+        console.error('Error sending invoice email:', result.error);
         return NextResponse.json(
-          { message: 'Failed to send email', error: error.message },
+          { message: 'Failed to send email', error: result.error },
           { status: 500 }
         );
       }
@@ -179,7 +174,7 @@ export async function POST(
 
       return NextResponse.json({
         message: 'Email sent successfully',
-        data,
+        messageId: result.messageId,
       });
     } catch (error) {
       console.error('Error sending invoice email:', error);
@@ -189,4 +184,4 @@ export async function POST(
       );
     }
   });
-} 
+}

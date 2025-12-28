@@ -42,7 +42,7 @@ export const createXenditInvoice = async ({
         amount,
         payerEmail: customerEmail,
         description,
-        currency: currency || 'IDR',
+        currency: currency || 'USD',
         invoiceDuration: invoiceDuration,
         successRedirectURL: successRedirectUrl || `${process.env.NEXT_PUBLIC_URL}/payment/success`,
         failureRedirectURL: failureRedirectUrl || `${process.env.NEXT_PUBLIC_URL}/payment/failure`,
@@ -67,6 +67,6 @@ export const verifyWebhookSignature = (
   if (!token || !expectedToken) {
     return false;
   }
-  
+
   return token === expectedToken;
 }; 

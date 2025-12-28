@@ -11,21 +11,21 @@ export function cn(...inputs: ClassValue[]) {
 /**
  * Format a number as currency with thousands separators and decimal places
  */
-export function formatCurrency(amount: number, currency: string = 'IDR', locale: string = 'id-ID'): string {
+export function formatCurrency(amount: number, currency: string = 'USD', locale: string = 'en-US'): string {
   const formatter = new Intl.NumberFormat(locale, {
     style: 'currency',
     currency,
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   });
-  
+
   return formatter.format(amount);
 }
 
 /**
  * Format a number with thousand separators
  */
-export function formatNumber(num: number, locale: string = 'id-ID'): string {
+export function formatNumber(num: number, locale: string = 'en-US'): string {
   return new Intl.NumberFormat(locale).format(num);
 }
 

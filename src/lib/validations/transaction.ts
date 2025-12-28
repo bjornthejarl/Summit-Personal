@@ -15,7 +15,7 @@ export const transactionSchema = z.object({
   }),
   description: z.string().min(1, 'Description is required'),
   amount: z.coerce.number().positive('Amount must be positive'),
-  currency: z.string().default('IDR'),
+  currency: z.string().default('USD'),
   transactionDate: z.coerce.date(),
   categoryId: z.number().int().optional().nullable(),
   relatedInvoiceId: z.number().int().optional().nullable(),

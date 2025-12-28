@@ -24,7 +24,7 @@ export const expenseSchema = z.object({
   vendor: z.string().min(1, 'Vendor name is required').optional(),
   description: z.string().optional(),
   amount: z.string().regex(/^\d+(\.\d{1,2})?$/, 'Amount must be a valid currency value'),
-  currency: z.string().default('IDR'),
+  currency: z.string().default('USD'),
   expenseDate: z.coerce.date({
     errorMap: () => ({ message: 'Please select a valid date' }),
   }),

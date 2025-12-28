@@ -4,10 +4,7 @@ import { authOptions } from '@/lib/auth/options';
 import { db } from '@/lib/db';
 import { quotes, quoteItems, clients, companies, users } from '@/lib/db/schema';
 import { and, eq } from 'drizzle-orm';
-import { Resend } from 'resend';
-
-// Initialize Resend with API key
-const resend = new Resend(process.env.RESEND_API_KEY);
+import { sendEmail } from '@/lib/email';
 
 // POST /api/quotes/[quoteId]/send-email - Send quote via email
 export async function POST(
@@ -156,18 +153,17 @@ export async function POST(
       </html>
     `;
 
-    // Send the email using Resend
-    const { data, error } = await resend.emails.send({
-      from: `${process.env.RESEND_FROM_NAME} <${process.env.RESEND_FROM_EMAIL || 'kugie@summitfinance.app'}>`,
+    // Send the email using SMTP
+    const result = await sendEmail({
       to: [quoteData.client.email],
       subject: `Quote ${quoteData.quote.quoteNumber} from ${quoteData.company?.name || 'Summit Finance'}`,
       html: htmlContent,
     });
 
-    if (error) {
-      console.error('Error sending email:', error);
+    if (!result.success) {
+      console.error('Error sending email:', result.error);
       return NextResponse.json(
-        { message: 'Failed to send email', error },
+        { message: 'Failed to send email', error: result.error },
         { status: 500 }
       );
     }
@@ -185,7 +181,7 @@ export async function POST(
 
     return NextResponse.json({
       message: 'Email sent successfully',
-      emailId: data?.id
+      emailId: result.messageId
     });
   } catch (error) {
     console.error('Error sending quote email:', error);
@@ -194,4 +190,4 @@ export async function POST(
       { status: 500 }
     );
   }
-} 
+}

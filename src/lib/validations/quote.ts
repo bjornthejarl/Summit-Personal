@@ -22,7 +22,7 @@ export const quoteSchema = z.object({
   tax: z.coerce.number().min(0, 'Tax cannot be negative').default(0),
   taxRate: z.coerce.number().min(0, 'Tax rate cannot be negative').default(0),
   total: z.coerce.number().min(0, 'Total cannot be negative').optional(),
-  currency: z.string().default('IDR'),
+  currency: z.string().default('USD'),
   notes: z.string().optional(),
   items: z.array(quoteItemSchema).min(1, 'At least one item is required'),
 });

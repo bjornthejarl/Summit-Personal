@@ -12,7 +12,7 @@ export const paymentSchema = z.object({
   invoiceId: z.number().int().positive('Invoice ID is required'),
   clientId: z.number().int().positive('Client ID is required'),
   amount: z.coerce.number().positive('Amount must be positive'),
-  currency: z.string().default('IDR'),
+  currency: z.string().default('USD'),
   paymentDate: z.coerce.date(),
   paymentMethod: z.enum(['card', 'bank_transfer', 'cash', 'other'], {
     errorMap: () => ({ message: 'Must be a valid payment method: card, bank_transfer, cash, or other' }),

@@ -148,8 +148,7 @@ function SignInForm() {
                     size="sm"
                     className="text-amber-700 dark:text-amber-300 p-0 h-auto mt-2"
                     onClick={() => {
-                      // TODO: Implement resend verification
-                      toast.info('Resend verification coming soon');
+                      handleResendVerification();
                     }}
                   >
                     <Mail className="h-4 w-4 mr-1" />

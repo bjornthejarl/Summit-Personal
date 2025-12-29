@@ -73,7 +73,7 @@ export function MFAEnforcementModal() {
                 setBackupCodes(data.backupCodes);
                 setStep('backup');
                 // Generate 3 random indices for verification
-                const indices = [];
+                const indices: number[] = [];
                 while (indices.length < 3) {
                     const rand = Math.floor(Math.random() * 10);
                     if (!indices.includes(rand)) indices.push(rand);

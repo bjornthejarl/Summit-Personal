@@ -18,7 +18,7 @@ export async function GET() {
         };
 
         const missingVars = [];
-        if (!process.env.SMTP_HOST) missing Vars.push('SMTP_HOST');
+        if (!process.env.SMTP_HOST) missingVars.push('SMTP_HOST');
         if (!process.env.SMTP_PORT) missingVars.push('SMTP_PORT');
         if (!process.env.SMTP_USER) missingVars.push('SMTP_USER');
         if (!process.env.SMTP_PASSWORD) missingVars.push('SMTP_PASSWORD');

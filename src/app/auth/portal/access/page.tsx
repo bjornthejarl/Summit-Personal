@@ -35,6 +35,9 @@ function SignInForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [showVerificationNeeded, setShowVerificationNeeded] = useState(false);
   const isSignupDisabled = config.isSignupDisabled;
+  const [showMFAPrompt, setShowMFAPrompt] = useState(false);
+  const [mfaCode, setMfaCode] = useState('');
+  const [loginCredentials, setLoginCredentials] = useState<{ email: string; password: string } | null>(null);
 
   // Check for URL params
   const verified = searchParams.get('verified');
@@ -74,9 +77,56 @@ function SignInForm() {
       if (response?.error) {
         if (response.error === 'EMAIL_NOT_VERIFIED') {
           setShowVerificationNeeded(true);
+        } else if (response.error === 'MFA_REQUIRED') {
+          // MFA is enabled - need to collect TOTP code
+          setLoginCredentials(values);
+          setShowMFAPrompt(true);
         } else {
           toast.error('Invalid credentials. Please try again.');
         }
+      } else {
+        router.push('/dashboard');
+        router.refresh();
+      }
+    } catch (error) {
+      toast.error('Something went wrong. Please try again.');
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function handleMFASubmit() {
+    if (!loginCredentials || mfaCode.length !== 6) {
+      toast.error('Please enter a 6-digit code');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      // Verify MFA code
+      const verifyResponse = await fetch('/api/mfa/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: mfaCode }),
+      });
+
+      if (!verifyResponse.ok) {
+        toast.error('Invalid MFA code');
+        setIsLoading(false);
+        return;
+      }
+
+      // Now sign in with verified MFA flag
+      const response = await signIn('credentials', {
+        email: loginCredentials.email,
+        password: loginCredentials.password,
+        mfaToken: 'VERIFIED',
+        redirect: false,
+      });
+
+      if (response?.error) {
+        toast.error('Login failed. Please try again.');
       } else {
         router.push('/dashboard');
         router.refresh();
@@ -154,6 +204,40 @@ function SignInForm() {
                     <Mail className="h-4 w-4 mr-1" />
                     Resend verification email
                   </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {showMFAPrompt && (
+            <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg">
+              <div className="flex items-start gap-3">
+                <Shield className="h-5 w-5 text-blue-600 mt-0.5" />
+                <div className="flex-1">
+                  <p className="font-medium text-blue-800 dark:text-blue-200">
+                    Two-Factor Authentication Required
+                  </p>
+                  <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
+                    Enter the 6-digit code from your authenticator app
+                  </p>
+                  <div className="mt-3 space-y-2">
+                    <Input
+                      placeholder="000000"
+                      maxLength={6}
+                      value={mfaCode}
+                      onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, ''))}
+                      onKeyPress={(e) => e.key === 'Enter' && handleMFASubmit()}
+                      disabled={isLoading}
+                      className="bg-white dark:bg-gray-900"
+                    />
+                    <Button
+                      onClick={handleMFASubmit}
+                      disabled={isLoading || mfaCode.length !== 6}
+                      className="w-full"
+                    >
+                      {isLoading ? 'Verifying...' : 'Verify & Sign In'}
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>

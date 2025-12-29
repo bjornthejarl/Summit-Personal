@@ -181,7 +181,7 @@ export function MFAEnforcementModal() {
                         <div className="text-sm space-y-2">
                             <p className="font-medium text-amber-600">⚠️ Save Your Backup Codes</p>
                             <p className="text-muted-foreground">
-                                Store these codes securely. You'll need them if you lose access to your authenticator.
+                                Store these codes securely. You&apos;ll need them if you lose access to your authenticator.
                             </p>
                         </div>
 
@@ -206,7 +206,7 @@ export function MFAEnforcementModal() {
                         </div>
 
                         <Button onClick={proceedToVerification} className="w-full">
-                            I've Saved My Codes - Continue
+                            I&apos;ve Saved My Codes - Continue
                         </Button>
                     </div>
                 )}

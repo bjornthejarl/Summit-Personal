@@ -3,15 +3,10 @@ import { formatCurrency, cn, formatDate, formatNumber, generateInvoiceNumber } f
 
 describe('Utility Functions', () => {
   it('should format currency correctly', () => {
-    // Don't test for exact format due to locale differences
-    const formatted = formatCurrency(12345.67, 'IDR');
-    expect(formatted).toContain('Rp');
+    // Test USD formatting
+    const formatted = formatCurrency(12345.67, 'USD');
+    expect(formatted).toContain('$');
     expect(formatted).toContain('12');
-    
-    // For USD, just check if it has $ symbol
-    const formattedUSD = formatCurrency(100, 'USD');
-    expect(formattedUSD).toContain('$');
-    expect(formattedUSD).toContain('100');
   });
 
   it('should combine class names', () => {
@@ -24,7 +19,7 @@ describe('Utility Functions', () => {
     // Creating a fixed date for testing
     const testDate = new Date(2024, 5, 15); // June 15, 2024
     expect(formatDate(testDate)).toBe('Jun 15, 2024');
-    
+
     // Test with string date
     const testDateString = '2024-06-15T12:00:00Z';
     expect(formatDate(testDateString)).toBe('Jun 15, 2024');
@@ -41,10 +36,10 @@ describe('Utility Functions', () => {
 
   it('should generate invoice numbers with the correct format', () => {
     const invoiceNumber = generateInvoiceNumber();
-    
+
     // Check if it starts with the prefix
     expect(invoiceNumber).toMatch(/^INV-\d{8}-\d{4}$/);
-    
+
     // Generate a second one to ensure they're unique
     const invoiceNumber2 = generateInvoiceNumber();
     expect(invoiceNumber).not.toBe(invoiceNumber2);

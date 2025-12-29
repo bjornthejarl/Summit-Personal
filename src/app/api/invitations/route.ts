@@ -147,7 +147,7 @@ export async function POST(request: NextRequest) {
       .where(eq(companies.id, companyId));
 
     // Send invitation email
-    const baseUrl = process.env.NEXT_PUBLIC_URL || 'https://summitfinance.app';
+    const baseUrl = process.env.NEXT_PUBLIC_URL || 'https://billing.valpha.dev';
     const acceptUrl = `${baseUrl}/accept-invitation?token=${token}`;
 
     // Send email using SMTP

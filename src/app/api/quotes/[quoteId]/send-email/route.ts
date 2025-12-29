@@ -71,7 +71,7 @@ export async function POST(
     }
 
     // Build URLs for the email
-    const baseUrl = process.env.NEXT_PUBLIC_URL || 'https://summitfinance.app';
+    const baseUrl = process.env.NEXT_PUBLIC_URL || 'https://billing.valpha.dev';
     const viewUrl = `${baseUrl}/quotes/${quoteId}`;
     const downloadUrl = `${baseUrl}/api/quotes/${quoteId}/pdf`;
 

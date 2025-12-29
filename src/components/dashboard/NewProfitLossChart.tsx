@@ -4,11 +4,11 @@ import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts"
 import { format } from "date-fns"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { 
-  ChartContainer, 
-  ChartTooltip, 
-  ChartTooltipContent, 
-  ChartLegend, 
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  ChartLegend,
   ChartLegendContent,
   type ChartConfig
 } from "@/components/ui/chart"
@@ -73,11 +73,11 @@ const chartConfig: ChartConfig = {
   }
 };
 
-export function NewProfitLossChart({ 
-  data, 
-  title = 'Profit & Loss', 
+export function NewProfitLossChart({
+  data,
+  title = 'Profit & Loss',
   description = 'Monthly income, expenses, and profit',
-  currency = 'IDR',
+  currency = 'USD',
   startDate,
   endDate
 }: ProfitLossChartProps) {
@@ -136,23 +136,23 @@ export function NewProfitLossChart({
             }}
           >
             <CartesianGrid strokeDasharray="3 3" vertical={false} />
-            <XAxis 
-              dataKey="month" 
-              tickLine={false} 
-              tickMargin={10} 
+            <XAxis
+              dataKey="month"
+              tickLine={false}
+              tickMargin={10}
               axisLine={false}
             />
-            <YAxis 
-              tickFormatter={formatYAxis} 
+            <YAxis
+              tickFormatter={formatYAxis}
               tickLine={false}
               axisLine={false}
             />
-            <ChartTooltip 
+            <ChartTooltip
               content={
-                <ChartTooltipContent 
+                <ChartTooltipContent
                   formatter={(value) => [formatCurrency(Number(value), currency), '']}
                 />
-              } 
+              }
             />
             <ChartLegend content={<ChartLegendContent />} />
             <Bar dataKey="income" fill="hsl(var(--chart-1))" radius={4} />

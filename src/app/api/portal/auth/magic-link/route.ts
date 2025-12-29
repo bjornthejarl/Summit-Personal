@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
     const token = await saveLoginToken(clientData.id, email);
 
     // Create verification URL
-    const baseUrl = process.env.NEXT_PUBLIC_URL || 'https://summitfinance.app';
+    const baseUrl = process.env.NEXT_PUBLIC_URL || 'https://billing.valpha.dev';
     const verificationUrl = `${baseUrl}/portal/verify?token=${token}`;
 
     // Send email using SMTP

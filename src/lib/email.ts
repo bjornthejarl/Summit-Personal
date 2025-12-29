@@ -47,17 +47,8 @@ export async function sendEmail(options: SendEmailOptions): Promise<SendEmailRes
     const fromName = process.env.SMTP_FROM_NAME || 'vAlpha';
     const fromEmail = process.env.SMTP_FROM_EMAIL;
 
-    // Debug logging
-    console.log('📧 Email send attempt:', {
-        to,
-        subject,
-        fromName,
-        fromEmail,
-        smtpHost: process.env.SMTP_HOST,
-        smtpPort: process.env.SMTP_PORT,
-        smtpUser: process.env.SMTP_USER ? '***configured***' : 'MISSING',
-        smtpPassword: process.env.SMTP_PASSWORD ? '***configured***' : 'MISSING',
-    });
+    // Debug logging (minimal - no sensitive data)
+    console.log('📧 Sending email:', { to, subject });
 
     if (!fromEmail) {
         console.error('❌ SMTP_FROM_EMAIL is not configured');

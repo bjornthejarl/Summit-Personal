@@ -11,7 +11,7 @@ export const config = {
   /**
    * Public URL for the application
    */
-  publicUrl: process.env.NEXT_PUBLIC_URL || 'https://summitfinance.app',
+  publicUrl: process.env.NEXT_PUBLIC_URL || 'https://billing.valpha.dev',
 
   /**
    * Email configuration (SMTP)

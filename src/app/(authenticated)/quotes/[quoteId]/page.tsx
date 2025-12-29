@@ -62,18 +62,18 @@ export default function QuoteDetailPage({ params }: { params: Promise<{ quoteId:
   const [loading, setLoading] = useState(true);
   const [sendingEmail, setSendingEmail] = useState(false);
   const [converting, setConverting] = useState(false);
-  
+
   useEffect(() => {
     const fetchQuote = async () => {
       setLoading(true);
       try {
         const { quoteId } = await params;
         const quoteResult = await fetch(`/api/quotes/${quoteId}`);
-        
+
         if (!quoteResult.ok) {
           throw new Error('Failed to fetch quote');
         }
-        
+
         const data = await quoteResult.json();
         setQuote({
           id: data.id,
@@ -94,7 +94,7 @@ export default function QuoteDetailPage({ params }: { params: Promise<{ quoteId:
             address: null,
           },
           company: data.company || {
-            defaultCurrency: 'IDR',
+            defaultCurrency: 'USD',
             name: ''
           },
           items: data.items || [],
@@ -107,21 +107,21 @@ export default function QuoteDetailPage({ params }: { params: Promise<{ quoteId:
         setLoading(false);
       }
     };
-    
+
     fetchQuote();
   }, [params]);
-  
+
   const handleDelete = async () => {
     try {
       const { quoteId } = await params;
       const response = await fetch(`/api/quotes/${quoteId}`, {
         method: 'DELETE',
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to delete quote');
       }
-      
+
       toast.success('Quote deleted successfully');
       router.push('/quotes');
     } catch (error) {
@@ -129,7 +129,7 @@ export default function QuoteDetailPage({ params }: { params: Promise<{ quoteId:
       toast.error('Failed to delete quote');
     }
   };
-  
+
   const handleStatusUpdate = async (newStatus: 'draft' | 'sent' | 'accepted' | 'rejected' | 'expired') => {
     try {
       const { quoteId } = await params;
@@ -140,15 +140,15 @@ export default function QuoteDetailPage({ params }: { params: Promise<{ quoteId:
         },
         body: JSON.stringify({ status: newStatus }),
       });
-      
+
       if (!response.ok) {
         throw new Error(`Failed to update quote status to ${newStatus}`);
       }
-      
+
       const updatedQuote = await response.json();
-      setQuote({...quote, ...updatedQuote});
+      setQuote({ ...quote, ...updatedQuote });
       toast.success(`Quote status updated to ${newStatus}`);
-      
+
       // Refresh quote data
       const refreshResponse = await fetch(`/api/quotes/${quoteId}`);
       if (refreshResponse.ok) {
@@ -160,70 +160,70 @@ export default function QuoteDetailPage({ params }: { params: Promise<{ quoteId:
       toast.error('Failed to update quote status');
     }
   };
-  
+
   const handleDownloadPdf = async () => {
     if (!quote) return;
-    
+
     try {
       const { quoteId } = await params;
-      
+
       // Directly fetch the PDF from the API
       const response = await fetch(`/api/quotes/${quoteId}/pdf`);
-      
+
       if (!response.ok) {
         throw new Error('Failed to generate PDF');
       }
-      
+
       // Create a blob from the PDF data
       const blob = await response.blob();
-      
+
       // Create a URL for the blob
       const url = window.URL.createObjectURL(blob);
-      
+
       // Create a temporary anchor element and trigger download
       const a = document.createElement('a');
       a.href = url;
       a.download = `quote-${quote.quoteNumber}.pdf`;
       document.body.appendChild(a);
       a.click();
-      
+
       // Clean up
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
-      
+
       toast.success('PDF downloaded successfully');
     } catch (error) {
       console.error('Error downloading PDF:', error);
       toast.error('Failed to download PDF');
     }
   };
-  
+
   const handleSendEmail = async () => {
     if (!quote) return;
-    
+
     // Check if client has an email
     if (!quote.client.email) {
       toast.error('Client does not have an email address');
       return;
     }
-    
+
     setSendingEmail(true);
-    
+
     try {
       const { quoteId } = await params;
       const response = await fetch(`/api/quotes/${quoteId}/send-email`, {
         method: 'POST',
       });
-      
+
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || 'Failed to send email');
       }
-      
+
       const result = await response.json();
-      
+
       toast.success('Email sent successfully');
-      
+
       // Refresh quote data if status was updated
       if (quote.status === 'draft') {
         const { quoteId } = await params;
@@ -240,27 +240,27 @@ export default function QuoteDetailPage({ params }: { params: Promise<{ quoteId:
       setSendingEmail(false);
     }
   };
-  
+
   const handleConvertToInvoice = async () => {
     if (!quote) return;
-    
+
     setConverting(true);
-    
+
     try {
       const { quoteId } = await params;
       // This endpoint would need to be implemented
       const response = await fetch(`/api/quotes/${quoteId}/convert-to-invoice`, {
         method: 'POST',
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Failed to convert quote to invoice');
       }
-      
+
       const data = await response.json();
       toast.success('Quote converted to invoice successfully');
-      
+
       // Redirect to the new invoice
       router.push(`/invoices/${data.invoiceId}`);
     } catch (error) {
@@ -270,7 +270,7 @@ export default function QuoteDetailPage({ params }: { params: Promise<{ quoteId:
       setConverting(false);
     }
   };
-  
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'draft':
@@ -287,7 +287,7 @@ export default function QuoteDetailPage({ params }: { params: Promise<{ quoteId:
         return <Badge>{status}</Badge>;
     }
   };
-  
+
   if (loading) {
     return (
       <div className="container mx-auto py-6">
@@ -297,7 +297,7 @@ export default function QuoteDetailPage({ params }: { params: Promise<{ quoteId:
       </div>
     );
   }
-  
+
   if (!quote) {
     return (
       <div className="container mx-auto py-6">
@@ -307,7 +307,7 @@ export default function QuoteDetailPage({ params }: { params: Promise<{ quoteId:
       </div>
     );
   }
-  
+
   return (
     <div className="container mx-auto py-6 space-y-6">
       <div className="flex justify-between items-center">
@@ -325,17 +325,17 @@ export default function QuoteDetailPage({ params }: { params: Promise<{ quoteId:
             </p>
           </div>
         </div>
-        
+
         <div className="flex gap-2">
           <Badge className={`${getStatusBadge(quote.status)} text-white`}>
             {quote.status.charAt(0).toUpperCase() + quote.status.slice(1)}
           </Badge>
-          
+
           <Button variant="outline" size="sm" onClick={handleDownloadPdf}>
             <Download className="h-4 w-4 mr-2" />
             Download PDF
           </Button>
-          
+
           {quote.status === 'draft' && (
             <>
               <Button variant="outline" size="sm" onClick={() => handleStatusUpdate('sent')}>
@@ -344,17 +344,17 @@ export default function QuoteDetailPage({ params }: { params: Promise<{ quoteId:
               </Button>
             </>
           )}
-          
+
           {quote.status === 'sent' && (
             <Button variant="outline" size="sm" onClick={() => handleStatusUpdate('accepted')}>
               Accept Quote
             </Button>
           )}
-          
+
           {quote.status === 'accepted' && !quote.convertedToInvoiceId && (
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="outline"
+              size="sm"
               onClick={handleConvertToInvoice}
               disabled={converting}
             >
@@ -362,17 +362,17 @@ export default function QuoteDetailPage({ params }: { params: Promise<{ quoteId:
               {converting ? 'Converting...' : 'Convert to Invoice'}
             </Button>
           )}
-          
-          <Button 
-            variant="outline" 
-            size="sm" 
+
+          <Button
+            variant="outline"
+            size="sm"
             onClick={handleSendEmail}
             disabled={sendingEmail || !quote.client.email}
           >
             <Send className="h-4 w-4 mr-2" />
             {sendingEmail ? 'Sending...' : 'Send Email'}
           </Button>
-          
+
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button variant="destructive" size="sm">
@@ -395,7 +395,7 @@ export default function QuoteDetailPage({ params }: { params: Promise<{ quoteId:
           </AlertDialog>
         </div>
       </div>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
@@ -410,7 +410,7 @@ export default function QuoteDetailPage({ params }: { params: Promise<{ quoteId:
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader>
             <CardTitle>Quote Details</CardTitle>
@@ -449,7 +449,7 @@ export default function QuoteDetailPage({ params }: { params: Promise<{ quoteId:
           </CardContent>
         </Card>
       </div>
-      
+
       <Card>
         <CardHeader>
           <CardTitle>Quote Items</CardTitle>
@@ -478,30 +478,30 @@ export default function QuoteDetailPage({ params }: { params: Promise<{ quoteId:
                   <tr key={item.id}>
                     <td className="px-4 py-2 whitespace-pre-line text-sm">{item.description}</td>
                     <td className="px-4 py-2 text-sm text-right">{parseFloat(item.quantity).toFixed(2)}</td>
-                    <td className="px-4 py-2 text-sm text-right">{quote.company?.defaultCurrency || 'IDR'} {parseFloat(item.unitPrice).toFixed(2)}</td>
-                    <td className="px-4 py-2 text-sm text-right">{quote.company?.defaultCurrency || 'IDR'} {parseFloat(item.amount).toFixed(2)}</td>
+                    <td className="px-4 py-2 text-sm text-right">{quote.company?.defaultCurrency || 'USD'} {parseFloat(item.unitPrice).toFixed(2)}</td>
+                    <td className="px-4 py-2 text-sm text-right">{quote.company?.defaultCurrency || 'USD'} {parseFloat(item.amount).toFixed(2)}</td>
                   </tr>
                 ))}
               </tbody>
               <tfoot className="bg-card">
                 <tr>
                   <td colSpan={3} className="px-4 py-2 text-sm text-right font-medium">Subtotal:</td>
-                  <td className="px-4 py-2 text-sm text-right">{quote.company?.defaultCurrency || 'IDR'} {parseFloat(quote.subtotal).toFixed(2)}</td>
+                  <td className="px-4 py-2 text-sm text-right">{quote.company?.defaultCurrency || 'USD'} {parseFloat(quote.subtotal).toFixed(2)}</td>
                 </tr>
                 <tr>
                   <td colSpan={3} className="px-4 py-2 text-sm text-right font-medium">
                     Tax ({quote.taxRate || '0'}%):
                   </td>
-                  <td className="px-4 py-2 text-sm text-right">{quote.company?.defaultCurrency || 'IDR'} {parseFloat(quote.tax).toFixed(2)}</td>
+                  <td className="px-4 py-2 text-sm text-right">{quote.company?.defaultCurrency || 'USD'} {parseFloat(quote.tax).toFixed(2)}</td>
                 </tr>
                 <tr>
                   <td colSpan={3} className="px-4 py-2 text-sm text-right font-medium">Total:</td>
-                  <td className="px-4 py-2 text-sm text-right font-bold">{quote.company?.defaultCurrency || 'IDR'} {parseFloat(quote.total).toFixed(2)}</td>
+                  <td className="px-4 py-2 text-sm text-right font-bold">{quote.company?.defaultCurrency || 'USD'} {parseFloat(quote.total).toFixed(2)}</td>
                 </tr>
               </tfoot>
             </table>
           </div>
-          
+
           {quote.notes && (
             <div className="mt-4">
               <h3 className="text-sm font-medium mb-2">Notes</h3>

@@ -50,7 +50,7 @@ const AgingReceivablesChart = ({
   data,
   title = 'Aging Receivables',
   description = 'Outstanding invoices by age',
-  currency = 'IDR'
+  currency = 'USD'
 }: AgingReceivablesChartProps) => {
   // Transform data for the pie chart
   const chartData = [

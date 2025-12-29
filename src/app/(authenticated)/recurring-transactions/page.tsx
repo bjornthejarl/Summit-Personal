@@ -64,22 +64,22 @@ export default function RecurringTransactionsPage() {
   const [expenses, setExpenses] = useState<RecurringExpense[]>([]);
   const [income, setIncome] = useState<RecurringIncome[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   // Format currency
   const formatCurrency = (amount: string, currency: string) => {
     return new Intl.NumberFormat('id-ID', {
       style: 'currency',
-      currency: currency || 'IDR',
+      currency: currency || 'USD',
       minimumFractionDigits: 2
     }).format(parseFloat(amount));
   };
-  
+
   // Format date
   const formatDate = (dateString: string | null) => {
     if (!dateString) return 'N/A';
     return format(new Date(dateString), 'MMM dd, yyyy');
   };
-  
+
   // Get badge color for recurring frequency
   const getFrequencyColor = (frequency: string) => {
     switch (frequency) {
@@ -90,25 +90,25 @@ export default function RecurringTransactionsPage() {
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
-  
+
   // Fetch recurring transactions data
   const fetchData = async () => {
     setIsLoading(true);
-    
+
     try {
       // Fetch recurring expenses
       const expensesRes = await fetch('/api/expenses?recurring=true');
       if (!expensesRes.ok) throw new Error('Failed to fetch recurring expenses');
       const expensesData = await expensesRes.json();
-      
+
       // Fetch recurring income
       const incomeRes = await fetch('/api/income?recurring=true');
       if (!incomeRes.ok) throw new Error('Failed to fetch recurring income');
       const incomeData = await incomeRes.json();
-      
+
       // Process expenses data
       setExpenses(expensesData.data || []);
-      
+
       // Process income data
       if (incomeData && incomeData.data) {
         // Transform the income data to match the expected format
@@ -124,7 +124,7 @@ export default function RecurringTransactionsPage() {
           category: item.category,
           client: item.client
         }));
-        
+
         setIncome(formattedIncome);
       } else {
         setIncome([]);
@@ -136,12 +136,12 @@ export default function RecurringTransactionsPage() {
       setIsLoading(false);
     }
   };
-  
+
   // Initial data load
   useEffect(() => {
     fetchData();
   }, []);
-  
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -153,7 +153,7 @@ export default function RecurringTransactionsPage() {
         </div>
         <RecurringTransactionsButton />
       </div>
-      
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">

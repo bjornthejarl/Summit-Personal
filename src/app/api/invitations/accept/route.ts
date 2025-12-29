@@ -137,7 +137,7 @@ export async function POST(request: NextRequest) {
     const permissions = getUserPermissions(invitation.role);
 
     // Get the base URL for the app
-    const baseUrl = process.env.NEXT_PUBLIC_URL || 'https://summitfinance.app';
+    const baseUrl = process.env.NEXT_PUBLIC_URL || 'https://billing.valpha.dev';
 
     // Send welcome email using SMTP
     const result = await sendEmail({

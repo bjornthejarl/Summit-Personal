@@ -64,7 +64,7 @@ export function NewAgingReceivablesChart({
   data,
   title = "Aging Receivables",
   description = "Outstanding invoices by age",
-  currency = "IDR",
+  currency = "USD",
   startDate,
   endDate
 }: AgingReceivablesChartProps) {
@@ -102,7 +102,7 @@ export function NewAgingReceivablesChart({
 
   // Calculate the total
   const total = chartData.reduce((sum, item) => sum + item.value, 0)
-  
+
   // Add percentage for labels
   const dataWithPercentage = chartData.map(item => ({
     ...item,
@@ -125,17 +125,17 @@ export function NewAgingReceivablesChart({
           <p className="text-muted-foreground text-sm">Total Outstanding</p>
           <p className="text-2xl font-bold">{formatCurrency(total, currency)}</p>
         </div>
-        <ChartContainer 
-          config={chartConfig} 
+        <ChartContainer
+          config={chartConfig}
           className="mx-auto aspect-square min-h-[300px] [&_.recharts-pie-label-text]:fill-foreground"
         >
           <PieChart accessibilityLayer>
-            <ChartTooltip 
+            <ChartTooltip
               content={
-                <ChartTooltipContent 
-                  formatter={(value) => [formatCurrency(Number(value), currency), '']} 
+                <ChartTooltipContent
+                  formatter={(value) => [formatCurrency(Number(value), currency), '']}
                 />
-              } 
+              }
             />
             <Pie
               data={dataWithPercentage}

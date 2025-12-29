@@ -52,11 +52,11 @@ const formatYAxis = (value: number): string => {
   return value.toString();
 };
 
-const ProfitLossChart = ({ 
-  data, 
-  title = 'Profit & Loss', 
+const ProfitLossChart = ({
+  data,
+  title = 'Profit & Loss',
   description = 'Monthly income, expenses, and profit',
-  currency = 'IDR'
+  currency = 'USD'
 }: ProfitLossChartProps) => {
   // Format the month display (from YYYY-MM to Month name)
   const formattedData = data.map(item => ({
@@ -85,7 +85,7 @@ const ProfitLossChart = ({
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="month" />
               <YAxis tickFormatter={formatYAxis} />
-              <Tooltip 
+              <Tooltip
                 formatter={(value: number) => [formatCurrency(value, currency), '']}
                 labelFormatter={(label) => `Month: ${label}`}
               />

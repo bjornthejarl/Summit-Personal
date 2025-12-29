@@ -77,18 +77,18 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ invoic
   const [sendingEmail, setSendingEmail] = useState(false);
   const [generatingPaymentLink, setGeneratingPaymentLink] = useState(false);
   const [regeneratingPaymentLink, setRegeneratingPaymentLink] = useState(false);
-  
+
   useEffect(() => {
     const fetchInvoice = async () => {
       setLoading(true);
       try {
         const { invoiceId } = await params;
         const response = await fetch(`/api/invoices/${invoiceId}`);
-        
+
         if (!response.ok) {
           throw new Error('Failed to fetch invoice');
         }
-        
+
         const data = await response.json();
         setInvoice({
           id: data.id,
@@ -110,7 +110,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ invoic
             address: null,
           },
           company: data.company || {
-            defaultCurrency: 'IDR'
+            defaultCurrency: 'USD'
           },
           items: data.items || [],
         });
@@ -121,21 +121,21 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ invoic
         setLoading(false);
       }
     };
-    
+
     fetchInvoice();
   }, [params]);
-  
+
   const handleDelete = async () => {
     try {
       const { invoiceId } = await params;
       const response = await fetch(`/api/invoices/${invoiceId}`, {
         method: 'DELETE',
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to delete invoice');
       }
-      
+
       toast.success('Invoice deleted successfully');
       router.push('/invoices');
     } catch (error) {
@@ -143,11 +143,11 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ invoic
       toast.error('Failed to delete invoice');
     }
   };
-  
+
   const handleStatusUpdate = async (newStatus: Invoice['status']) => {
     try {
       if (!invoice) return;
-      
+
       const { invoiceId } = await params;
       const response = await fetch(`/api/invoices/${invoiceId}`, {
         method: 'PUT',
@@ -161,11 +161,11 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ invoic
           notes: invoice.notes || '',
         }),
       });
-      
+
       if (!response.ok) {
         throw new Error(`Failed to update invoice status to ${newStatus}`);
       }
-      
+
       // fetch the updated invoice
       const updatedInvoiceResponse = await fetch(`/api/invoices/${invoiceId}`);
       const updatedInvoice = await updatedInvoiceResponse.json();
@@ -176,68 +176,68 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ invoic
       toast.error('Failed to update invoice status');
     }
   };
-  
+
   const handleDownloadPdf = async () => {
     if (!invoice) return;
-    
+
     try {
       const { invoiceId } = await params;
-      
+
       // Directly fetch the PDF from the API
       const response = await fetch(`/api/invoices/${invoiceId}/pdf`);
-      
+
       if (!response.ok) {
         throw new Error('Failed to generate PDF');
       }
-      
+
       // Create a blob from the PDF data
       const blob = await response.blob();
-      
+
       // Create a URL for the blob
       const url = window.URL.createObjectURL(blob);
-      
+
       // Create a temporary anchor element and trigger download
       const a = document.createElement('a');
       a.href = url;
       a.download = `invoice-${invoice.invoiceNumber}.pdf`;
       document.body.appendChild(a);
       a.click();
-      
+
       // Clean up
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
-      
+
       toast.success('PDF downloaded successfully');
     } catch (error) {
       console.error('Error downloading PDF:', error);
       toast.error('Failed to download PDF');
     }
   };
-  
+
   const handleSendEmail = async () => {
     if (!invoice) return;
-    
+
     // Check if client has an email
     if (!invoice.client?.email) {
       toast.error('Client does not have an email address');
       return;
     }
-    
+
     setSendingEmail(true);
-    
+
     try {
       const { invoiceId } = await params;
       const response = await fetch(`/api/invoices/${invoiceId}/send-email`, {
         method: 'POST',
       });
-      
+
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || 'Failed to send email');
       }
 
       toast.success('Email sent successfully');
-      
+
       // Refresh invoice data if status was updated
       if (invoice.status === 'draft') {
         const { invoiceId } = await params;
@@ -254,41 +254,41 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ invoic
       setSendingEmail(false);
     }
   };
-  
+
   // Check if the payment link is expired based on due date
   const isPaymentLinkExpired = (invoice: Invoice) => {
     if (!invoice.dueDate) return false;
-    
+
     // Define "expired" as either:
     // 1. Due date is in the past, or
     // 2. The invoice has status of 'overdue'
     return isPast(new Date(invoice.dueDate)) || invoice.status === 'overdue';
   };
-  
+
   const handleGeneratePaymentLink = async () => {
     if (!invoice) return;
-    
+
     // Check if client has an email
     if (!invoice.client?.email) {
       toast.error('Client must have an email address to generate a payment link');
       return;
     }
-    
+
     setGeneratingPaymentLink(true);
-    
+
     try {
       const { invoiceId } = await params;
       const response = await fetch(`/api/invoices/${invoiceId}/create-xendit-invoice`, {
         method: 'POST',
       });
-      
+
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || 'Failed to generate payment link');
       }
-      
+
       const data = await response.json();
-      
+
       // Update the invoice with the new Xendit information
       setInvoice(prev => {
         if (!prev) return null;
@@ -298,9 +298,9 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ invoic
           xenditInvoiceUrl: data.invoice.xenditInvoiceUrl,
         };
       });
-      
+
       toast.success('Payment link generated successfully');
-      
+
       // Optionally open the payment link in a new tab
       if (data.xenditInvoiceUrl) {
         window.open(data.xenditInvoiceUrl, '_blank');
@@ -312,18 +312,18 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ invoic
       setGeneratingPaymentLink(false);
     }
   };
-  
+
   const handleRegeneratePaymentLink = async () => {
     if (!invoice) return;
-    
+
     // Check if client has an email
     if (!invoice.client?.email) {
       toast.error('Client must have an email address to regenerate a payment link');
       return;
     }
-    
+
     setRegeneratingPaymentLink(true);
-    
+
     try {
       const { invoiceId } = await params;
       const response = await fetch(`/api/invoices/${invoiceId}/create-xendit-invoice`, {
@@ -335,14 +335,14 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ invoic
           regenerate: true
         }),
       });
-      
+
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || 'Failed to regenerate payment link');
       }
-      
+
       const data = await response.json();
-      
+
       // Update the invoice with the new Xendit information
       setInvoice(prev => {
         if (!prev) return null;
@@ -352,9 +352,9 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ invoic
           xenditInvoiceUrl: data.invoice.xenditInvoiceUrl,
         };
       });
-      
+
       toast.success('Payment link regenerated successfully');
-      
+
       // Optionally open the payment link in a new tab
       if (data.xenditInvoiceUrl) {
         window.open(data.xenditInvoiceUrl, '_blank');
@@ -366,7 +366,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ invoic
       setRegeneratingPaymentLink(false);
     }
   };
-  
+
   if (loading) {
     return (
       <div className="container mx-auto py-6">
@@ -376,7 +376,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ invoic
       </div>
     );
   }
-  
+
   if (!invoice) {
     return (
       <div className="container mx-auto py-6">
@@ -386,7 +386,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ invoic
       </div>
     );
   }
-  
+
   const getStatusColor = (status: Invoice['status']) => {
     switch (status) {
       case 'draft': return 'bg-gray-500';
@@ -399,9 +399,9 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ invoic
   };
 
   const formatCurrency = (amount: string) => {
-    return Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(parseFloat(amount));
+    return Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(parseFloat(amount));
   };
-  
+
   return (
     <div className="container mx-auto py-6 space-y-8">
       <div className="flex items-center justify-between">
@@ -413,24 +413,24 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ invoic
             <h1 className="text-3xl font-bold tracking-tight">Invoice {invoice.invoiceNumber}</h1>
           </div>
         </div>
-        
+
         <div className="flex gap-2">
           <Badge className={`${getStatusColor(invoice.status)} text-white`}>
             {invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)}
           </Badge>
-          
+
           <Button variant="outline" size="sm" onClick={handleDownloadPdf}>
             <Download className="h-4 w-4 mr-2" />
             Download PDF
           </Button>
-          
+
           {invoice.status === 'draft' && (
             <>
               <Button variant="outline" size="sm" onClick={() => handleStatusUpdate('sent')}>
                 <Send className="h-4 w-4 mr-2" />
                 Mark as Sent
               </Button>
-              
+
               <Button
                 variant="outline"
                 size="sm"
@@ -441,30 +441,30 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ invoic
               </Button>
             </>
           )}
-          
+
           {invoice.status === 'sent' && (
             <>
               <Button variant="outline" size="sm" onClick={() => handleStatusUpdate('paid')}>
                 Mark as Paid
               </Button>
-              
+
               {/* Payment link button */}
               {invoice.xenditInvoiceUrl ? (
                 <>
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     size="sm"
                     onClick={() => invoice.xenditInvoiceUrl && window.open(invoice.xenditInvoiceUrl, '_blank')}
                   >
                     <ExternalLink className="h-4 w-4 mr-2" />
                     View Payment Link
                   </Button>
-                  
+
                   {/* Add Regenerate button if the payment link is expired */}
                   {isPaymentLinkExpired(invoice) && (
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
+                    <Button
+                      variant="outline"
+                      size="sm"
                       onClick={handleRegeneratePaymentLink}
                       disabled={regeneratingPaymentLink}
                     >
@@ -474,9 +474,9 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ invoic
                   )}
                 </>
               ) : (
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={handleGeneratePaymentLink}
                   disabled={generatingPaymentLink || !invoice.client?.email}
                 >
@@ -486,29 +486,29 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ invoic
               )}
             </>
           )}
-          
+
           {/* Add same functionality for overdue status */}
           {invoice.status === 'overdue' && (
             <>
               <Button variant="outline" size="sm" onClick={() => handleStatusUpdate('paid')}>
                 Mark as Paid
               </Button>
-              
+
               {invoice.xenditInvoiceUrl ? (
                 <>
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     size="sm"
                     onClick={() => invoice.xenditInvoiceUrl && window.open(invoice.xenditInvoiceUrl, '_blank')}
                   >
                     <ExternalLink className="h-4 w-4 mr-2" />
                     View Payment Link
                   </Button>
-                  
+
                   {/* Always show regenerate button for overdue invoices with payment links */}
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
+                  <Button
+                    variant="outline"
+                    size="sm"
                     onClick={handleRegeneratePaymentLink}
                     disabled={regeneratingPaymentLink}
                   >
@@ -517,9 +517,9 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ invoic
                   </Button>
                 </>
               ) : (
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={handleGeneratePaymentLink}
                   disabled={generatingPaymentLink || !invoice.client?.email}
                 >
@@ -529,17 +529,17 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ invoic
               )}
             </>
           )}
-          
-          <Button 
-            variant="outline" 
-            size="sm" 
+
+          <Button
+            variant="outline"
+            size="sm"
             onClick={handleSendEmail}
             disabled={sendingEmail || !invoice.client?.email}
           >
             <Send className="h-4 w-4 mr-2" />
             {sendingEmail ? 'Sending...' : 'Send Email'}
           </Button>
-          
+
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button variant="destructive" size="sm">
@@ -562,7 +562,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ invoic
           </AlertDialog>
         </div>
       </div>
-      
+
       {/* If we have a payment link, show it in a card */}
       {invoice.xenditInvoiceUrl && (
         <Card className={`${isPaymentLinkExpired(invoice) ? 'bg-amber-50' : 'bg-slate-50'}`}>
@@ -573,13 +573,13 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ invoic
                   Payment Link {isPaymentLinkExpired(invoice) ? '(Expired)' : 'Available'}
                 </h3>
                 <p className="text-muted-foreground">
-                  {isPaymentLinkExpired(invoice) 
-                    ? 'This payment link has expired. Please regenerate a new one.' 
+                  {isPaymentLinkExpired(invoice)
+                    ? 'This payment link has expired. Please regenerate a new one.'
                     : 'Share this link with your client to receive payment online'}
                 </p>
               </div>
               {isPaymentLinkExpired(invoice) ? (
-                <Button 
+                <Button
                   onClick={handleRegeneratePaymentLink}
                   className="ml-4"
                   disabled={regeneratingPaymentLink}
@@ -588,7 +588,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ invoic
                   {regeneratingPaymentLink ? 'Regenerating...' : 'Regenerate Link'}
                 </Button>
               ) : (
-                <Button 
+                <Button
                   onClick={() => invoice.xenditInvoiceUrl && window.open(invoice.xenditInvoiceUrl, '_blank')}
                   className="ml-4"
                 >
@@ -600,7 +600,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ invoic
           </CardContent>
         </Card>
       )}
-      
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card>
           <CardHeader>
@@ -615,7 +615,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ invoic
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader>
             <CardTitle>Invoice Details</CardTitle>
@@ -643,7 +643,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ invoic
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader>
             <CardTitle>Amount Due</CardTitle>
@@ -656,7 +656,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ invoic
           </CardContent>
         </Card>
       </div>
-      
+
       <Card>
         <CardHeader>
           <CardTitle>Items</CardTitle>
@@ -676,8 +676,8 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ invoic
                 <TableRow key={item.id}>
                   <TableCell>{item.description}</TableCell>
                   <TableCell className="text-right">{parseFloat(item.quantity).toFixed(2)}</TableCell>
-                  <TableCell className="text-right">{invoice.company?.defaultCurrency || "IDR"} {parseFloat(item.unitPrice).toFixed(2)}</TableCell>
-                  <TableCell className="text-right">{invoice.company?.defaultCurrency || "IDR"} {parseFloat(item.amount).toFixed(2)}</TableCell>
+                  <TableCell className="text-right">{invoice.company?.defaultCurrency || "USD"} {parseFloat(item.unitPrice).toFixed(2)}</TableCell>
+                  <TableCell className="text-right">{invoice.company?.defaultCurrency || "USD"} {parseFloat(item.amount).toFixed(2)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -686,21 +686,21 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ invoic
             <div className="space-y-2 w-48">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Subtotal:</span>
-                {invoice.company?.defaultCurrency || "IDR"} {parseFloat(invoice.subtotal).toFixed(2)}
+                {invoice.company?.defaultCurrency || "USD"} {parseFloat(invoice.subtotal).toFixed(2)}
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Tax ({invoice.taxRate || '0'}%)</span>
-                {invoice.company?.defaultCurrency || "IDR"} {parseFloat(invoice.tax).toFixed(2)}
+                {invoice.company?.defaultCurrency || "USD"} {parseFloat(invoice.tax).toFixed(2)}
               </div>
               <div className="flex justify-between font-semibold">
                 <span>Total:</span>
-                {invoice.company?.defaultCurrency || "IDR"} {parseFloat(invoice.total).toFixed(2)}
+                {invoice.company?.defaultCurrency || "USD"} {parseFloat(invoice.total).toFixed(2)}
               </div>
             </div>
           </div>
         </CardContent>
       </Card>
-      
+
       {invoice.notes && (
         <Card>
           <CardHeader>

@@ -6,7 +6,7 @@ import { eq } from 'drizzle-orm';
 import { randomBytes } from 'crypto';
 import { sendReactEmail } from '@/lib/email';
 import { PasswordResetEmail } from '@/emails/PasswordResetEmail';
-import { hashPassword } from '@/lib/auth/password';
+import { hashPassword } from '@/lib/auth/argon2';
 
 const requestSchema = z.object({
     email: z.string().email('Please enter a valid email address'),

@@ -2,10 +2,7 @@ import type { Metadata } from "next";
 import "../globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/ThemeProvider";
-import { Sidebar } from "@/components/layout/Sidebar";
-import { Header } from "@/components/layout/Header";
 import { NextAuthProvider } from "@/components/NextAuthProvider";
-
 
 export const metadata: Metadata = {
     title: {
@@ -39,23 +36,18 @@ export const metadata: Metadata = {
     },
 }
 
-export default function Layout({ children }: { children: React.ReactNode }) {
+export default function AuthLayout({ children }: { children: React.ReactNode }) {
     return (
         <NextAuthProvider>
             <ThemeProvider
                 attribute="class"
-                defaultTheme="system"
+                defaultTheme="light"
                 enableSystem
                 disableTransitionOnChange
             >
-                <div className="flex h-screen">
-                    <Sidebar />
-                    <div className="flex-1 flex flex-col overflow-hidden">
-                        <Header />
-                        <main className="flex-1 overflow-auto p-4">
-                            {children}
-                        </main>
-                    </div>
+                {/* Clean standalone auth pages - no sidebar, no header */}
+                <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+                    {children}
                 </div>
                 <Toaster />
             </ThemeProvider>

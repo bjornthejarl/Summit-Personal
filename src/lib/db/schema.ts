@@ -628,3 +628,52 @@ export const apiTokensRelations = relations(apiTokens, ({ one }) => ({
     references: [companies.id],
   }),
 }));
+
+// ============================================
+// COMPLIANCE TABLES
+// ============================================
+
+// Audit action types
+export const auditActionEnum = pgEnum('audit_action', [
+  'create', 'read', 'update', 'delete', 'login', 'logout', 'export', 'anonymize'
+]);
+
+// Audit logs table - tracks all data access and modifications for compliance
+export const auditLogs = pgTable('audit_logs', {
+  id: serial('id').primaryKey(),
+  // Who performed the action
+  userId: integer('user_id').references(() => users.id),
+  userEmail: text('user_email'), // Stored in case user is deleted
+  // What was accessed
+  tableName: varchar('table_name', { length: 100 }).notNull(),
+  recordId: integer('record_id'),
+  action: auditActionEnum('action').notNull(),
+  // Details (encrypted)
+  oldValues: text('old_values'), // JSON, encrypted
+  newValues: text('new_values'), // JSON, encrypted
+  // Context
+  ipAddress: varchar('ip_address', { length: 45 }), // IPv6 max length
+  userAgent: text('user_agent'),
+  companyId: integer('company_id').references(() => companies.id),
+  // Timestamp
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// Account deletion requests - for GDPR right to erasure tracking
+export const accountDeletionRequests = pgTable('account_deletion_requests', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').notNull().references(() => users.id),
+  // Request details
+  reason: text('reason'),
+  country: varchar('country', { length: 2 }), // User's country at time of request
+  // Status
+  status: varchar('status', { length: 20 }).default('pending').notNull(), // pending, approved, rejected, completed
+  // For US users - financial records must be kept 7 years
+  financialRecordsUntil: timestamp('financial_records_until'),
+  // Processing
+  processedAt: timestamp('processed_at'),
+  processedBy: integer('processed_by').references(() => users.id),
+  // Timestamps
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});

@@ -102,9 +102,10 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Copy startup script
+# Copy startup script and migration scripts
 COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
 COPY --from=builder --chown=nextjs:nodejs /app/startup.js ./startup.js
+COPY --from=builder --chown=nextjs:nodejs /app/scripts ./scripts
 
 # Copy only postgres driver for database migrations
 COPY --from=deps /app/node_modules/postgres ./node_modules/postgres

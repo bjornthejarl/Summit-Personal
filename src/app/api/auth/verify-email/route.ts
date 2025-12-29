@@ -81,8 +81,11 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const token = searchParams.get('token');
 
+    // Use proper base URL from environment, not request.url (which is 0.0.0.0:3000 in Docker)
+    const baseUrl = process.env.NEXT_PUBLIC_URL || 'https://billing.valpha.dev';
+
     if (!token) {
-        return NextResponse.redirect(new URL('/auth/portal/access?error=invalid_token', request.url));
+        return NextResponse.redirect(new URL('/auth/portal/access?error=invalid_token', baseUrl));
     }
 
     // Find user with this token that hasn't expired
@@ -100,7 +103,7 @@ export async function GET(request: NextRequest) {
         );
 
     if (!user) {
-        return NextResponse.redirect(new URL('/auth/portal/access?error=expired_token', request.url));
+        return NextResponse.redirect(new URL('/auth/portal/access?error=expired_token', baseUrl));
     }
 
     if (!user.emailVerified) {
@@ -116,5 +119,6 @@ export async function GET(request: NextRequest) {
             .where(eq(users.id, user.id));
     }
 
-    return NextResponse.redirect(new URL('/auth/portal/access?verified=true', request.url));
+    return NextResponse.redirect(new URL('/auth/portal/access?verified=true', baseUrl));
 }
+

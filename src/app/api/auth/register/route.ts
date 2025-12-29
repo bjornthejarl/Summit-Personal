@@ -103,14 +103,28 @@ export async function POST(request: Request) {
     const baseUrl = process.env.NEXT_PUBLIC_URL || 'https://billing.valpha.dev';
     const verifyUrl = `${baseUrl}/api/auth/verify-email?token=${verificationToken}`;
 
-    await sendReactEmail({
-      to: newUser.email,
-      subject: 'Verify your email - vAlpha',
-      react: VerifyEmail({
-        userName: validatedData.name,
-        verifyUrl,
-      }),
-    });
+    console.log('📧 Attempting to send verification email to:', newUser.email);
+    console.log('📧 Verify URL:', verifyUrl);
+
+    try {
+      const emailResult = await sendReactEmail({
+        to: newUser.email,
+        subject: 'Verify your email - vAlpha',
+        react: VerifyEmail({
+          userName: validatedData.name,
+          verifyUrl,
+        }),
+      });
+
+      if (emailResult.success) {
+        console.log('✅ Verification email sent successfully to:', newUser.email);
+      } else {
+        console.error('❌ Failed to send verification email:', emailResult.error);
+      }
+    } catch (emailError) {
+      console.error('❌ Exception sending verification email:', emailError);
+      // Don't fail registration if email fails - user can request resend
+    }
 
     // Success
     return NextResponse.json({

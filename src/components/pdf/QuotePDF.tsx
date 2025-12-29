@@ -38,13 +38,13 @@ const styles = StyleSheet.create({
     width: '50%',
   },
   logoContainer: {
-    marginBottom: 10,
-    maxWidth: 120,
-    maxHeight: 60,
+    marginBottom: 15,
+    width: 100,
+    height: 50,
   },
   logo: {
-    width: '100%',
-    maxHeight: 60,
+    width: 100,
+    height: 50,
     objectFit: 'contain',
   },
   quoteTitle: {
@@ -211,41 +211,41 @@ const formatDate = (date: string | Date) => {
 
 const formatCurrency = (amount: string | number, currency: string = 'USD') => {
   const numericAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
-  
+
   if (isNaN(numericAmount)) return `${currency} 0.00`;
-  
+
   // Format based on currency
   let formattedAmount: string;
-  
+
   switch (currency) {
     case 'IDR':
-      formattedAmount = new Intl.NumberFormat('id-ID', { 
-        style: 'currency', 
+      formattedAmount = new Intl.NumberFormat('id-ID', {
+        style: 'currency',
         currency: 'IDR',
         minimumFractionDigits: 0,
         maximumFractionDigits: 0
       }).format(numericAmount);
       break;
     case 'EUR':
-      formattedAmount = new Intl.NumberFormat('de-DE', { 
-        style: 'currency', 
-        currency: 'EUR' 
+      formattedAmount = new Intl.NumberFormat('de-DE', {
+        style: 'currency',
+        currency: 'EUR'
       }).format(numericAmount);
       break;
     default:
-      formattedAmount = new Intl.NumberFormat('en-US', { 
-        style: 'currency', 
-        currency: currency || 'USD' 
+      formattedAmount = new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: currency || 'USD'
       }).format(numericAmount);
   }
-  
+
   return formattedAmount;
 };
 
 // Component for creating PDF
 export const QuotePDF: React.FC<QuotePDFProps> = ({ quote, preview = false }) => {
   const currency = quote.currency || quote.company?.defaultCurrency || 'USD';
-  
+
   const document = (
     <Document>
       <Page size="A4" style={styles.page}>
@@ -315,7 +315,7 @@ export const QuotePDF: React.FC<QuotePDFProps> = ({ quote, preview = false }) =>
               <Text>Amount</Text>
             </View>
           </View>
-          
+
           {quote.items.map((item, index) => (
             <View key={item.id} style={index === quote.items.length - 1 ? styles.tableRowLast : styles.tableRow}>
               <View style={[styles.tableCellBordered, styles.col1]}>

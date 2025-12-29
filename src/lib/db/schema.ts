@@ -69,6 +69,14 @@ export const users = pgTable('users', {
   emailVerified: boolean('email_verified').default(false).notNull(),
   verificationToken: text('verification_token'),
   verificationExpires: timestamp('verification_expires'),
+  // MFA/TOTP fields
+  mfaEnabled: boolean('mfa_enabled').default(false).notNull(),
+  mfaSecret: text('mfa_secret'), // Encrypted TOTP secret
+  backupCodes: text('backup_codes'), // Encrypted JSON array of backup codes
+  mfaEnrolledAt: timestamp('mfa_enrolled_at'),
+  // Searchable hashes for encrypted fields
+  emailHash: text('email_hash'), // SHA-256 hash for searching encrypted emails
+  phoneHash: text('phone_hash'), // SHA-256 hash for searching encrypted phones
   // Compliance fields
   country: varchar('country', { length: 2 }), // ISO 3166-1 alpha-2 (e.g., 'US', 'DE')
   lastActivityAt: timestamp('last_activity_at').defaultNow(),
@@ -91,6 +99,9 @@ export const clients = pgTable('clients', {
   email: text('email'),
   phone: text('phone'),
   address: text('address'),
+  // Searchable hashes for encrypted fields
+  emailHash: text('email_hash'),
+  phoneHash: text('phone_hash'),
   paymentTerms: integer('payment_terms').default(30), // Default to 30 days
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),

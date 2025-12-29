@@ -89,6 +89,33 @@ function SignInForm() {
     }
   }
 
+  async function handleResendVerification() {
+    const email = form.getValues('email');
+    if (!email) {
+      toast.error('Please enter your email address');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/auth/resend-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success('Verification email sent! Please check your inbox.');
+      } else {
+        toast.error(data.message || 'Failed to resend verification email');
+      }
+    } catch (error) {
+      console.error('Resend verification error:', error);
+      toast.error('Failed to resend verification email');
+    }
+  }
+
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
       <Card className="w-full max-w-md">

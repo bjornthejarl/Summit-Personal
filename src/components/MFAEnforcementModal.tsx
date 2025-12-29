@@ -31,11 +31,22 @@ export function MFAEnforcementModal() {
 
     // Check if admin needs MFA
     useEffect(() => {
-        if (session?.user?.role === 'admin' && !(session?.user as any).mfaEnabled && !open) {
+        // Only trigger enrollment if:
+        // 1. User is admin
+        // 2. MFA is not enabled
+        // 3. Modal is not already open
+        // 4. We don't already have QR code or backup codes (meaning we're not mid-enrollment)
+        if (
+            session?.user?.role === 'admin' &&
+            !(session?.user as any).mfaEnabled &&
+            !open &&
+            !qrCode &&
+            backupCodes.length === 0
+        ) {
             setOpen(true);
             enrollMFA();
         }
-    }, [session]);
+    }, [session, open, qrCode, backupCodes]);
 
     const enrollMFA = async () => {
         try {

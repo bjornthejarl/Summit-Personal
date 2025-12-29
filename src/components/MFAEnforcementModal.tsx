@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import {
     Dialog,
@@ -25,6 +25,9 @@ export function MFAEnforcementModal() {
     const [backupCodes, setBackupCodes] = useState<string[]>([]);
     const [isLoading, setIsLoading] = useState(false);
 
+    // Track if enrollment has been initiated to prevent duplicate calls
+    const enrollmentInitiated = useRef(false);
+
     // For backup code verification
     const [randomIndices, setRandomIndices] = useState<number[]>([]);
     const [verificationInputs, setVerificationInputs] = useState(['', '', '']);
@@ -34,19 +37,17 @@ export function MFAEnforcementModal() {
         // Only trigger enrollment if:
         // 1. User is admin
         // 2. MFA is not enabled
-        // 3. Modal is not already open
-        // 4. We don't already have QR code or backup codes (meaning we're not mid-enrollment)
+        // 3. Enrollment hasn't been initiated yet
         if (
             session?.user?.role === 'admin' &&
             !(session?.user as any).mfaEnabled &&
-            !open &&
-            !qrCode &&
-            backupCodes.length === 0
+            !enrollmentInitiated.current
         ) {
+            enrollmentInitiated.current = true;
             setOpen(true);
             enrollMFA();
         }
-    }, [session, open, qrCode, backupCodes]);
+    }, [session]);
 
     const enrollMFA = async () => {
         try {
@@ -58,6 +59,7 @@ export function MFAEnforcementModal() {
                 setStep('qr');
             } else {
                 toast.error('Failed to start MFA enrollment');
+                enrollmentInitiated.current = false; // Reset on error
             }
         } catch (error) {
             toast.error('Error starting MFA enrollment');

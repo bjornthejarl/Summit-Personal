@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Header } from "@/components/layout/Header";
 import { NextAuthProvider } from "@/components/NextAuthProvider";
+import { MFAEnforcement Modal } from "@/components/MFAEnforcementModal";
 
 
 export const metadata: Metadata = {
@@ -57,6 +58,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             </main>
           </div>
         </div>
+        <MFAEnforcementModal />
         <Toaster />
       </ThemeProvider>
     </NextAuthProvider>

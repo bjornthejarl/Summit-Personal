@@ -284,6 +284,12 @@ function SignInForm() {
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? 'Signing in...' : 'Sign In'}
               </Button>
+
+              <div className="text-center">
+                <Link href="/auth/forgot-password" className="text-sm text-muted-foreground hover:text-primary">
+                  Forgot password?
+                </Link>
+              </div>
             </form>
           </Form>
           <div className="mt-4 text-center text-sm">

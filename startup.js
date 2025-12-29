@@ -329,49 +329,35 @@ CREATE TABLE IF NOT EXISTS test (
 `;
 
 async function runMigrations() {
-    const databaseUrl = process.env.DATABASE_URL;
-    if (!databaseUrl) {
-        console.log('⚠️ DATABASE_URL not set, skipping migrations');
-        return;
-    }
+  const databaseUrl = process.env.DATABASE_URL;
+  if (!databaseUrl) {
+    console.log('⚠️ DATABASE_URL not set, skipping migrations');
+    return;
+  }
 
-    console.log('🔍 Checking database tables...');
+  console.log('🔍 Running database migrations...');
 
-    const sql = postgres(databaseUrl);
+  const sql = postgres(databaseUrl);
 
-    try {
-        // Check if users table exists
-        const result = await sql`
-      SELECT EXISTS (
-        SELECT FROM information_schema.tables 
-        WHERE table_schema = 'public' 
-        AND table_name = 'users'
-      );
-    `;
-
-        if (result[0].exists) {
-            console.log('✅ Database tables already exist');
-            await sql.end();
-            return;
-        }
-
-        console.log('📦 Creating database tables...');
-        await sql.unsafe(MIGRATION_SQL);
-        console.log('✅ Database migration completed!');
-        await sql.end();
-    } catch (error) {
-        console.error('⚠️ Migration warning:', error.message);
-        try { await sql.end(); } catch (e) { }
-    }
+  try {
+    // Always run migrations - CREATE IF NOT EXISTS is idempotent
+    console.log('📦 Ensuring all database tables exist...');
+    await sql.unsafe(MIGRATION_SQL);
+    console.log('✅ Database ready!');
+    await sql.end();
+  } catch (error) {
+    console.error('⚠️ Migration warning:', error.message);
+    try { await sql.end(); } catch (e) { }
+  }
 }
 
 async function start() {
-    console.log('🚀 Starting vAlpha...');
+  console.log('🚀 Starting vAlpha...');
 
-    await runMigrations();
+  await runMigrations();
 
-    console.log('🌐 Starting Next.js server...');
-    require('./server.js');
+  console.log('🌐 Starting Next.js server...');
+  require('./server.js');
 }
 
 start();

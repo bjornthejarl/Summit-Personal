@@ -6,7 +6,7 @@ import { users, clients, accountDeletionRequests } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { logAnonymization, getClientIp } from '@/lib/audit';
 import { anonymize } from '@/lib/crypto';
-import { EU_COUNTRIES } from '@/app/api/auth/register/route';
+import { isEUCountry } from '@/lib/countries';
 
 /**
  * Account Deletion Endpoint
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const isEU = user.country && EU_COUNTRIES.includes(user.country);
+        const isEU = isEUCountry(user.country);
 
         // Check for existing pending request
         const [existingRequest] = await db

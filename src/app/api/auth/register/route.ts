@@ -8,22 +8,8 @@ import { config } from '@/lib/config';
 import { randomBytes } from 'crypto';
 import { sendReactEmail } from '@/lib/email';
 import { VerifyEmail } from '@/emails/VerifyEmail';
+import { VALID_COUNTRIES } from '@/lib/countries';
 
-// ISO 3166-1 alpha-2 country codes validation
-const VALID_COUNTRIES = [
-  'US', 'CA', 'GB', 'DE', 'FR', 'ES', 'IT', 'NL', 'BE', 'AT', 'CH', 'AU', 'NZ',
-  'JP', 'KR', 'SG', 'HK', 'IN', 'BR', 'MX', 'AR', 'CL', 'CO', 'PE', 'PH', 'ID',
-  'MY', 'TH', 'VN', 'AE', 'SA', 'ZA', 'NG', 'KE', 'EG', 'IL', 'TR', 'PL', 'SE',
-  'NO', 'DK', 'FI', 'IE', 'PT', 'GR', 'CZ', 'HU', 'RO', 'BG', 'HR', 'SK', 'SI',
-  'LT', 'LV', 'EE', 'CY', 'MT', 'LU', 'IS', 'RU', 'UA', 'BY', 'KZ', 'PK', 'BD',
-  'TW', 'CN', 'OTHER'
-];
-
-// EU countries for GDPR
-export const EU_COUNTRIES = [
-  'AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR', 'DE', 'GR', 'HU',
-  'IE', 'IT', 'LV', 'LT', 'LU', 'MT', 'NL', 'PL', 'PT', 'RO', 'SK', 'SI', 'ES', 'SE'
-];
 
 // Validation schema for registration
 const registerSchema = z.object({

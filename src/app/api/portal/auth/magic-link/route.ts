@@ -39,10 +39,10 @@ export async function POST(request: NextRequest) {
       .where(eq(clients.email, email));
 
     if (!clientData) {
-      // Don't reveal that the client doesn't exist
+      // Email not registered as a client
       return NextResponse.json(
-        { message: 'If you exist as a client, a magic link has been sent to your email' },
-        { status: 200 }
+        { error: 'This email is not registered in our system. Please contact your administrator to add you as a client.' },
+        { status: 404 }
       );
     }
 

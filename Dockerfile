@@ -106,6 +106,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/src/lib/db/migrations ./src/lib/db/migrations
 COPY --from=builder --chown=nextjs:nodejs /app/drizzle.config.ts ./drizzle.config.ts
 COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
+COPY --from=builder --chown=nextjs:nodejs /app/startup.js ./startup.js
 
 # Copy drizzle-kit and related dependencies for migrations
 # Note: Copying from deps ensures we have all required dependencies
@@ -115,6 +116,8 @@ COPY --from=deps /app/node_modules/dotenv ./node_modules/dotenv
 COPY --from=deps /app/node_modules/@neondatabase ./node_modules/@neondatabase
 COPY --from=deps /app/node_modules/postgres ./node_modules/postgres
 COPY --from=deps /app/node_modules/pg ./node_modules/pg
+COPY --from=deps /app/node_modules/esbuild ./node_modules/esbuild
+COPY --from=deps /app/node_modules/@esbuild ./node_modules/@esbuild
 
 USER nextjs
 
@@ -122,7 +125,7 @@ EXPOSE 3000
 
 ENV PORT=3000
 
-# server.js is created by next build from the standalone output
+# startup.js runs migrations then starts server.js
 # https://nextjs.org/docs/pages/api-reference/config/next-config-js/output
 ENV HOSTNAME="0.0.0.0"
-CMD ["node", "server.js"]
+CMD ["node", "startup.js"]

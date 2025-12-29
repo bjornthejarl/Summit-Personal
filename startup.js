@@ -21,25 +21,6 @@ async function start() {
         // Continue anyway - migration might already be done
     }
 
-    // TEMPORARY: Reset MFA for all users (remove after deployment)
-    try {
-        console.log('🔓 Resetting MFA for all users...');
-        const postgres = require('postgres');
-        const sql = postgres(process.env.DATABASE_URL, { max: 1 });
-        const result = await sql`
-            UPDATE users 
-            SET mfa_enabled = FALSE, mfa_secret = NULL, backup_codes = NULL, mfa_enrolled_at = NULL
-            WHERE mfa_enabled = TRUE
-            RETURNING email
-        `;
-        console.log(`✅ MFA reset for ${result.length} users`);
-        result.forEach(u => console.log(`   - ${u.email}`));
-        await sql.end();
-    } catch (error) {
-        console.error('⚠️ MFA reset warning:', error.message);
-        // Continue anyway
-    }
-
     console.log('🌐 Starting Next.js server...');
     require('./server.js');
 }

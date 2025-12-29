@@ -166,7 +166,7 @@ export default function SignUpPage() {
             <Button
               variant="outline"
               className="w-full"
-              onClick={() => router.push('/auth/signin')}
+              onClick={() => router.push('/auth/portal/access')}
             >
               Go to Sign In
             </Button>
@@ -189,7 +189,7 @@ export default function SignUpPage() {
           <CardContent>
             <div className="mt-4 text-center text-sm">
               Already have an account?{' '}
-              <Link href="/auth/signin" className="text-primary hover:underline">
+              <Link href="/auth/portal/access" className="text-primary hover:underline">
                 Sign in
               </Link>
             </div>

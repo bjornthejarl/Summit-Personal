@@ -67,7 +67,7 @@ export function Header() {
             </DropdownMenuContent>
           </DropdownMenu>
         ) : (
-          <Link href="/auth/signin">
+          <Link href="/auth/portal/access">
             <Button variant="default">Sign in</Button>
           </Link>
         )}

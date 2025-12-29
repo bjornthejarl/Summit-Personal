@@ -28,7 +28,7 @@ const formSchema = z.object({
   confirmPassword: z.string().min(6, 'Password must be at least 6 characters'),
 }).refine(data => data.password === data.confirmPassword, {
   message: "Passwords don't match",
-  path: ['confirmPassword'], 
+  path: ['confirmPassword'],
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -46,12 +46,12 @@ function AcceptInvitationContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
-  
+
   const [isLoading, setIsLoading] = useState(false);
   const [isVerifying, setIsVerifying] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [invitation, setInvitation] = useState<InvitationData | null>(null);
-  
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -60,7 +60,7 @@ function AcceptInvitationContent() {
       confirmPassword: '',
     },
   });
-  
+
   // Verify the invitation token on component mount
   useEffect(() => {
     if (!token) {
@@ -68,19 +68,19 @@ function AcceptInvitationContent() {
       setIsVerifying(false);
       return;
     }
-    
+
     const verifyToken = async () => {
       try {
         const response = await fetch(`/api/invitations/verify?token=${token}`);
-        
+
         if (!response.ok) {
           const data = await response.json();
           throw new Error(data.message || 'Failed to verify invitation');
         }
-        
+
         const invitationData = await response.json();
         setInvitation(invitationData);
-        
+
         // Pre-fill the name field if it's provided in the invitation
         if (invitationData.name) {
           form.setValue('name', invitationData.name);
@@ -95,15 +95,15 @@ function AcceptInvitationContent() {
         setIsVerifying(false);
       }
     };
-    
+
     verifyToken();
   }, [token, form]);
-  
+
   const onSubmit = async (values: FormValues) => {
     if (!token) return;
-    
+
     setIsLoading(true);
-    
+
     try {
       const response = await fetch('/api/invitations/accept', {
         method: 'POST',
@@ -116,14 +116,14 @@ function AcceptInvitationContent() {
           password: values.password,
         }),
       });
-      
+
       if (!response.ok) {
         const data = await response.json();
         throw new Error(data.message || 'Failed to accept invitation');
       }
-      
+
       toast.success('Account created successfully! Please sign in.');
-      
+
       // Clear any existing NextAuth session to prevent JWT decryption errors
       await fetch('/api/auth/clear-session', {
         method: 'POST',
@@ -131,9 +131,9 @@ function AcceptInvitationContent() {
           'Content-Type': 'application/json',
         },
       });
-      
+
       // Redirect to sign in page without callback parameters
-      window.location.href = '/auth/signin';
+      window.location.href = '/auth/portal/access';
       return;
     } catch (error) {
       if (error instanceof Error) {
@@ -145,7 +145,7 @@ function AcceptInvitationContent() {
       setIsLoading(false);
     }
   };
-  
+
   // Loading state
   if (isVerifying) {
     return (
@@ -162,7 +162,7 @@ function AcceptInvitationContent() {
       </div>
     );
   }
-  
+
   // Error state
   if (error || !invitation) {
     return (
@@ -175,14 +175,14 @@ function AcceptInvitationContent() {
           <CardContent className="text-center">
             <p className="mb-4">Please contact the person who invited you or try again with a valid link.</p>
             <Button asChild>
-              <Link href="/auth/signin">Go to Sign In</Link>
+              <Link href="/auth/portal/access">Go to Sign In</Link>
             </Button>
           </CardContent>
         </Card>
       </div>
     );
   }
-  
+
   // Success state - show the form
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4">
@@ -202,7 +202,7 @@ function AcceptInvitationContent() {
                   <label className="text-sm font-medium text-muted-foreground">Email Address</label>
                   <p className="p-2 bg-secondary/50 rounded-md">{invitation.email}</p>
                 </div>
-                
+
                 <FormField
                   control={form.control}
                   name="name"
@@ -216,7 +216,7 @@ function AcceptInvitationContent() {
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={form.control}
                   name="password"
@@ -224,10 +224,10 @@ function AcceptInvitationContent() {
                     <FormItem>
                       <FormLabel>Password</FormLabel>
                       <FormControl>
-                        <Input 
-                          type="password" 
-                          placeholder="••••••••" 
-                          {...field} 
+                        <Input
+                          type="password"
+                          placeholder="••••••••"
+                          {...field}
                           disabled={isLoading}
                         />
                       </FormControl>
@@ -238,7 +238,7 @@ function AcceptInvitationContent() {
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={form.control}
                   name="confirmPassword"
@@ -246,9 +246,9 @@ function AcceptInvitationContent() {
                     <FormItem>
                       <FormLabel>Confirm Password</FormLabel>
                       <FormControl>
-                        <Input 
-                          type="password" 
-                          placeholder="••••••••" 
+                        <Input
+                          type="password"
+                          placeholder="••••••••"
                           {...field}
                           disabled={isLoading}
                         />
@@ -258,7 +258,7 @@ function AcceptInvitationContent() {
                   )}
                 />
               </div>
-              
+
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? (
                   <>
@@ -269,7 +269,7 @@ function AcceptInvitationContent() {
                   'Accept Invitation'
                 )}
               </Button>
-              
+
               <div className="text-center mt-4">
                 <p className="text-sm text-muted-foreground">
                   Already have an account?{' '}

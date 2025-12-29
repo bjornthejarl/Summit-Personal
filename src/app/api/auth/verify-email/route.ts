@@ -82,7 +82,7 @@ export async function GET(request: NextRequest) {
     const token = searchParams.get('token');
 
     if (!token) {
-        return NextResponse.redirect(new URL('/auth/signin?error=invalid_token', request.url));
+        return NextResponse.redirect(new URL('/auth/portal/access?error=invalid_token', request.url));
     }
 
     // Find user with this token that hasn't expired
@@ -100,7 +100,7 @@ export async function GET(request: NextRequest) {
         );
 
     if (!user) {
-        return NextResponse.redirect(new URL('/auth/signin?error=expired_token', request.url));
+        return NextResponse.redirect(new URL('/auth/portal/access?error=expired_token', request.url));
     }
 
     if (!user.emailVerified) {
@@ -116,5 +116,5 @@ export async function GET(request: NextRequest) {
             .where(eq(users.id, user.id));
     }
 
-    return NextResponse.redirect(new URL('/auth/signin?verified=true', request.url));
+    return NextResponse.redirect(new URL('/auth/portal/access?verified=true', request.url));
 }

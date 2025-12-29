@@ -45,15 +45,15 @@ export async function requirePermission(req: NextRequest, permission: string) {
  */
 export async function getSessionWithRole(allowedRoles: Role[]): Promise<UserSession> {
   const session = await getServerSession(authOptions) as UserSession;
-  
+
   if (!session?.user) {
-    redirect('/auth/signin');
+    redirect('/auth/portal/access');
   }
-  
+
   if (!allowedRoles.includes(session.user.role)) {
     redirect('/access-denied');
   }
-  
+
   return session;
 }
 
@@ -63,15 +63,15 @@ export async function getSessionWithRole(allowedRoles: Role[]): Promise<UserSess
  */
 export async function getSessionWithPermission(permission: string): Promise<UserSession> {
   const session = await getServerSession(authOptions) as UserSession;
-  
+
   if (!session?.user) {
-    redirect('/auth/signin');
+    redirect('/auth/portal/access');
   }
-  
+
   if (!checkPermission(session, permission)) {
     redirect('/access-denied');
   }
-  
+
   return session;
 }
 
@@ -81,14 +81,14 @@ export async function getSessionWithPermission(permission: string): Promise<User
  */
 export async function checkCompanyAccess(companyId: string | number): Promise<UserSession> {
   const session = await getServerSession(authOptions) as UserSession;
-  
+
   if (!session?.user) {
-    redirect('/auth/signin');
+    redirect('/auth/portal/access');
   }
-  
+
   if (session.user.companyId !== companyId.toString()) {
     redirect('/access-denied');
   }
-  
+
   return session;
 } 

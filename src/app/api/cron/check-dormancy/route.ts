@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
             .limit(50); // Process in batches
 
         const baseUrl = process.env.NEXT_PUBLIC_URL || 'https://billing.valpha.dev';
-        const loginUrl = `${baseUrl}/auth/signin`;
+        const loginUrl = `${baseUrl}/auth/portal/access`;
 
         let sentCount = 0;
         let errorCount = 0;

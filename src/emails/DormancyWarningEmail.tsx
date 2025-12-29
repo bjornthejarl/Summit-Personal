@@ -22,7 +22,7 @@ export const DormancyWarningEmail = ({
     userName = 'User',
     lastActivityDate = 'January 1, 2024',
     daysUntilDormant = 30,
-    loginUrl = 'https://billing.valpha.dev/auth/signin',
+    loginUrl = 'https://billing.valpha.dev/auth/portal/access',
 }: DormancyWarningEmailProps) => {
     return (
         <Html>

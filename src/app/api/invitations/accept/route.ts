@@ -148,7 +148,7 @@ export async function POST(request: NextRequest) {
           <h2>Welcome to ${company?.name || 'Our Company'}!</h2>
           <p>Hello ${name},</p>
           <p>Your account has been successfully created. You can now sign in to access your dashboard.</p>
-          <p><a href="${baseUrl}/auth/signin" style="background-color: #5469d4; color: white; padding: 10px 15px; text-decoration: none; border-radius: 4px; display: inline-block; margin: 10px 0;">Sign In Now</a></p>
+          <p><a href="${baseUrl}/auth/portal/access" style="background-color: #5469d4; color: white; padding: 10px 15px; text-decoration: none; border-radius: 4px; display: inline-block; margin: 10px 0;">Sign In Now</a></p>
           <p>If you have any questions, please don't hesitate to reach out to your team administrator.</p>
           <p>Best regards,<br>${company?.name || 'Our Company'} Team</p>
         </div>

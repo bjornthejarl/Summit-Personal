@@ -8,7 +8,7 @@ import { eq, and, isNull, or } from 'drizzle-orm';
 import { sql } from 'drizzle-orm';
 
 const publicPaths = [
-  '/auth/signin',
+  '/auth/portal/access',
   '/auth/signup',
   '/auth/signout',
   '/api/auth',
@@ -25,14 +25,14 @@ const publicPaths = [
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  
+
   // Block access to signup when disabled
   if (process.env.NEXT_PUBLIC_DISABLE_SIGNUP === '1') {
     // Block access to signup page
     if (pathname === '/auth/signup') {
-      return NextResponse.redirect(new URL('/auth/signin', request.url));
+      return NextResponse.redirect(new URL('/auth/portal/access', request.url));
     }
-    
+
     // Block access to registration API
     if (pathname === '/api/auth/register') {
       return NextResponse.json(
@@ -41,48 +41,48 @@ export async function middleware(request: NextRequest) {
       );
     }
   }
-  
+
   // Check if the path is public or starts with one of the public paths
   if (publicPaths.some(path => pathname === path || pathname.startsWith(path))) {
     return NextResponse.next();
   }
-  
+
   // Special explicit handling for the accept-invitation path with query parameters
   if (pathname === '/accept-invitation') {
     return NextResponse.next();
   }
-  
+
   // Special case for the root path - redirect to dashboard if authenticated
   if (pathname === '/') {
     return NextResponse.next();
   }
-  
+
   // For client portal routes
   if (pathname.startsWith('/portal')) {
     // Check client JWT cookie
     const clientToken = request.cookies.get('client_token')?.value;
-    
+
     if (!clientToken) {
       const url = new URL('/portal/login', request.url);
       url.searchParams.set('callbackUrl', encodeURI(request.url));
       return NextResponse.redirect(url);
     }
-    
+
     // Allow client to continue to portal route
     return NextResponse.next();
   }
-  
+
   // For API portal routes, check client token and return 401 if not present
   if (pathname.startsWith('/api/portal') && !pathname.startsWith('/api/portal/auth')) {
     const clientToken = request.cookies.get('client_token')?.value;
-    
+
     if (!clientToken) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
-    
+
     return NextResponse.next();
   }
-  
+
   // Enhanced API route handling
   if (pathname.startsWith('/api/')) {
     const skipAuthPaths = ['/api/auth', '/api/portal/auth', '/api/webhooks', '/api/debug'];
@@ -90,7 +90,7 @@ export async function middleware(request: NextRequest) {
       return NextResponse.next();
     }
     const authHeader = request.headers.get('Authorization');
-    
+
     if (authHeader && authHeader.startsWith('Bearer ')) {
       const fullToken = authHeader.substring(7);
       if (fullToken.startsWith(API_TOKEN_PREFIX) && fullToken.includes('_')) {
@@ -110,29 +110,29 @@ export async function middleware(request: NextRequest) {
                     or(isNull(apiTokens.expiresAt), sql`${apiTokens.expiresAt} > NOW()`)
                   )
                 );
-              
+
               const tokenRecord = tokenRecords[0];
-              
+
               if (tokenRecord) {
                 const isValid = await verifyTokenSecret(secretPart, tokenRecord.tokenHash);
-                
+
                 if (isValid) {
                   // Token is valid - update last used timestamp
                   await db.update(apiTokens)
                     .set({ lastUsedAt: new Date() })
                     .where(eq(apiTokens.id, tokenRecord.id));
-                  
+
                   // Add user and company info to request headers
                   const requestHeaders = new Headers(request.headers);
                   requestHeaders.set('x-api-token-user-id', tokenRecord.userId.toString());
                   requestHeaders.set('x-api-token-company-id', tokenRecord.companyId.toString());
-                  
+
                   // Get user role for permissions
                   const [apiUser] = await db
                     .select({ role: dbUsers.role })
                     .from(dbUsers)
                     .where(eq(dbUsers.id, tokenRecord.userId));
-                    
+
                   if (apiUser) {
                     requestHeaders.set('x-api-token-user-role', apiUser.role);
                   }
@@ -152,26 +152,26 @@ export async function middleware(request: NextRequest) {
         }
       }
     }
-    
+
     // Fall back to session-based authentication if no API token or invalid token
     const token = await getToken({ req: request });
     if (!token) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
-    
+
     return NextResponse.next();
   }
-  
+
   // For all other routes, check for authentication and redirect to signin if not authenticated
   const token = await getToken({ req: request });
-  
+
   if (!token) {
-    const url = new URL('/auth/signin', request.url);
+    const url = new URL('/auth/portal/access', request.url);
     // Use a simpler callbackUrl to avoid potential encoding issues
     url.searchParams.set('callbackUrl', request.nextUrl.pathname);
     return NextResponse.redirect(url);
   }
-  
+
   return NextResponse.next();
 }
 

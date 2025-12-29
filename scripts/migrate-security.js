@@ -68,8 +68,8 @@ CREATE TABLE IF NOT EXISTS account_deletion_requests (
 CREATE INDEX IF NOT EXISTS account_deletion_requests_user_id_idx ON account_deletion_requests(user_id);
 CREATE INDEX IF NOT EXISTS account_deletion_requests_status_idx ON account_deletion_requests(status);
 
--- Set all existing users to require email verification (security upgrade)
-UPDATE users SET email_verified = FALSE WHERE email_verified IS NULL OR email_verified = TRUE;
+-- Set email_verified to FALSE only for users who don't have it set yet (new accounts need verification)
+UPDATE users SET email_verified = FALSE WHERE email_verified IS NULL;
 
 -- Set last_activity_at for existing users who don't have it
 UPDATE users SET last_activity_at = updated_at WHERE last_activity_at IS NULL;

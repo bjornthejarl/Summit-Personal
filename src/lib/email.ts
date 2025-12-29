@@ -3,14 +3,19 @@ import { render } from '@react-email/components';
 import { ReactElement } from 'react';
 
 // SMTP configuration using environment variables
+const smtpPort = parseInt(process.env.SMTP_PORT || '465');
+const smtpSecure = smtpPort === 465; // Use SSL for port 465, STARTTLS for 587
+
 const transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST || 'smtp.zoho.com',
-    port: parseInt(process.env.SMTP_PORT || '465'),
-    secure: process.env.SMTP_SECURE !== 'false', // true for 465, false for other ports
+    port: smtpPort,
+    secure: smtpSecure, // true for 465, false for 587 (uses STARTTLS)
     auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASSWORD,
     },
+    // For port 587, require TLS upgrade
+    ...(smtpPort === 587 && { requireTLS: true }),
 });
 
 interface SendEmailOptions {

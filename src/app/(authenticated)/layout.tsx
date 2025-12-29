@@ -5,7 +5,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Header } from "@/components/layout/Header";
 import { NextAuthProvider } from "@/components/NextAuthProvider";
-import { MFAEnforcement Modal } from "@/components/MFAEnforcementModal";
+import { MFAEnforcementModal } from "@/components/MFAEnforcementModal";
 
 
 export const metadata: Metadata = {

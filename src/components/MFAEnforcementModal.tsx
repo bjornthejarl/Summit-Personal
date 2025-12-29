@@ -31,7 +31,7 @@ export function MFAEnforcementModal() {
 
     // Check if admin needs MFA
     useEffect(() => {
-        if (session?.user?.role === 'admin' && !(session?.user as any).mfaEnabled) {
+        if (session?.user?.role === 'admin' && !(session?.user as any).mfaEnabled && !open) {
             setOpen(true);
             enrollMFA();
         }

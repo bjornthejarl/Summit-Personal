@@ -13,17 +13,21 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { Shield, Copy, Download } from 'lucide-react';
+import { Shield, Copy, Download, CheckCircle2 } from 'lucide-react';
 import Image from 'next/image';
 
 export function MFAEnforcementModal() {
     const { data: session, update } = useSession();
     const [open, setOpen] = useState(false);
-    const [step, setStep] = useState<'qr' | 'verify' | 'backup'>('qr');
+    const [step, setStep] = useState<'qr' | 'verify' | 'backup' | 'verify-codes'>('qr');
     const [qrCode, setQrCode] = useState<string>('');
     const [totpCode, setTotpCode] = useState('');
     const [backupCodes, setBackupCodes] = useState<string[]>([]);
     const [isLoading, setIsLoading] = useState(false);
+
+    // For backup code verification
+    const [randomIndices, setRandomIndices] = useState<number[]>([]);
+    const [verificationInputs, setVerificationInputs] = useState(['', '', '']);
 
     // Check if admin needs MFA
     useEffect(() => {
@@ -68,8 +72,13 @@ export function MFAEnforcementModal() {
             if (response.ok) {
                 setBackupCodes(data.backupCodes);
                 setStep('backup');
-                // Update session
-                await update();
+                // Generate 3 random indices for verification
+                const indices = [];
+                while (indices.length < 3) {
+                    const rand = Math.floor(Math.random() * 10);
+                    if (!indices.includes(rand)) indices.push(rand);
+                }
+                setRandomIndices(indices.sort((a, b) => a - b));
             } else {
                 toast.error(data.error || 'Invalid code');
             }
@@ -96,7 +105,27 @@ export function MFAEnforcementModal() {
         toast.success('Backup codes copied to clipboard');
     };
 
-    const completeSetup = () => {
+    const proceedToVerification = () => {
+        setStep('verify-codes');
+    };
+
+    const verifyBackupCodes = () => {
+        const isValid = randomIndices.every((index, i) => {
+            const expectedCode = backupCodes[index];
+            const inputCode = verificationInputs[i].trim().toUpperCase();
+            return expectedCode === inputCode;
+        });
+
+        if (isValid) {
+            completeSetup();
+        } else {
+            toast.error('Codes do not match. Please check and try again.');
+        }
+    };
+
+    const completeSetup = async () => {
+        // Update session
+        await update();
         setOpen(false);
         toast.success('MFA enabled successfully!');
     };
@@ -158,7 +187,10 @@ export function MFAEnforcementModal() {
 
                         <div className="bg-gray-100 dark:bg-gray-900 p-4 rounded-lg space-y-1 font-mono text-sm">
                             {backupCodes.map((code, i) => (
-                                <div key={i}>{code}</div>
+                                <div key={i} className="flex items-center gap-2">
+                                    <span className="text-muted-foreground w-6">{i + 1}.</span>
+                                    <span>{code}</span>
+                                </div>
                             ))}
                         </div>
 
@@ -173,9 +205,55 @@ export function MFAEnforcementModal() {
                             </Button>
                         </div>
 
-                        <Button onClick={completeSetup} className="w-full">
-                            I've Saved My Codes
+                        <Button onClick={proceedToVerification} className="w-full">
+                            I've Saved My Codes - Continue
                         </Button>
+                    </div>
+                )}
+
+                {step === 'verify-codes' && (
+                    <div className="space-y-4">
+                        <div className="text-sm space-y-2">
+                            <p className="font-medium flex items-center gap-2">
+                                <CheckCircle2 className="h-5 w-5 text-primary" />
+                                Verify You Saved Your Codes
+                            </p>
+                            <p className="text-muted-foreground">
+                                To confirm you saved your backup codes, please enter the codes at these positions:
+                            </p>
+                        </div>
+
+                        {randomIndices.map((index, i) => (
+                            <div key={i} className="space-y-2">
+                                <Label htmlFor={`code-${i}`}>
+                                    Code #{index + 1}
+                                </Label>
+                                <Input
+                                    id={`code-${i}`}
+                                    placeholder="XXXX-XXXX"
+                                    maxLength={9}
+                                    value={verificationInputs[i]}
+                                    onChange={(e) => {
+                                        const newInputs = [...verificationInputs];
+                                        newInputs[i] = e.target.value.toUpperCase();
+                                        setVerificationInputs(newInputs);
+                                    }}
+                                />
+                            </div>
+                        ))}
+
+                        <div className="flex gap-2">
+                            <Button onClick={() => setStep('backup')} variant="outline" className="flex-1">
+                                Back to Codes
+                            </Button>
+                            <Button
+                                onClick={verifyBackupCodes}
+                                className="flex-1"
+                                disabled={verificationInputs.some(v => v.length === 0)}
+                            >
+                                Verify & Complete
+                            </Button>
+                        </div>
                     </div>
                 )}
             </DialogContent>

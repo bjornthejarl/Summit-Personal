@@ -1,11 +1,11 @@
 import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { z } from 'zod';
-import { compare } from 'bcryptjs';
 import { db } from '@/lib/db';
 import { and, eq } from 'drizzle-orm';
 import { users } from '@/lib/db/schema';
 import { getUserPermissions } from './permissions/utils';
+import { verifyPasswordWithLegacy, hashPassword } from './argon2';
 
 export const authOptions: NextAuthOptions = {
   session: {
@@ -47,12 +47,32 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        // Compare passwords
-        const passwordMatch = await compare(password, user.password);
+        // Verify password (supports both Argon2id and legacy bcrypt)
+        const { valid, needsRehash } = await verifyPasswordWithLegacy(user.password, password);
 
-        if (!passwordMatch) {
+        if (!valid) {
           return null;
         }
+
+        // Check if email is verified
+        if (!user.emailVerified) {
+          throw new Error('EMAIL_NOT_VERIFIED');
+        }
+
+        // If using legacy bcrypt, upgrade to Argon2id
+        if (needsRehash) {
+          const newHash = await hashPassword(password);
+          await db
+            .update(users)
+            .set({ password: newHash, updatedAt: new Date() })
+            .where(eq(users.id, user.id));
+        }
+
+        // Update last activity
+        await db
+          .update(users)
+          .set({ lastActivityAt: new Date() })
+          .where(eq(users.id, user.id));
 
         // Get user permissions based on role
         const permissions = getUserPermissions(user.role);
@@ -88,4 +108,4 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
   },
-}; 
+};

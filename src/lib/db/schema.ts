@@ -65,6 +65,15 @@ export const users = pgTable('users', {
   password: text('password'),
   role: roleEnum('role').default('staff').notNull(),
   companyId: integer('company_id').references(() => companies.id),
+  // Email verification
+  emailVerified: boolean('email_verified').default(false).notNull(),
+  verificationToken: text('verification_token'),
+  verificationExpires: timestamp('verification_expires'),
+  // Compliance fields
+  country: varchar('country', { length: 2 }), // ISO 3166-1 alpha-2 (e.g., 'US', 'DE')
+  lastActivityAt: timestamp('last_activity_at').defaultNow(),
+  dormantNotifiedAt: timestamp('dormant_notified_at'),
+  // Timestamps
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
   softDelete: boolean('soft_delete').default(false).notNull(),

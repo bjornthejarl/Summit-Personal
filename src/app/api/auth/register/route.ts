@@ -1,17 +1,42 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { hash } from 'bcryptjs';
+import { hashPassword } from '@/lib/auth/argon2';
 import { db } from '@/lib/db';
 import { companies, users } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { config } from '@/lib/config';
+import { randomBytes } from 'crypto';
+import { sendReactEmail } from '@/lib/email';
+import { VerifyEmail } from '@/emails/VerifyEmail';
+
+// ISO 3166-1 alpha-2 country codes validation
+const VALID_COUNTRIES = [
+  'US', 'CA', 'GB', 'DE', 'FR', 'ES', 'IT', 'NL', 'BE', 'AT', 'CH', 'AU', 'NZ',
+  'JP', 'KR', 'SG', 'HK', 'IN', 'BR', 'MX', 'AR', 'CL', 'CO', 'PE', 'PH', 'ID',
+  'MY', 'TH', 'VN', 'AE', 'SA', 'ZA', 'NG', 'KE', 'EG', 'IL', 'TR', 'PL', 'SE',
+  'NO', 'DK', 'FI', 'IE', 'PT', 'GR', 'CZ', 'HU', 'RO', 'BG', 'HR', 'SK', 'SI',
+  'LT', 'LV', 'EE', 'CY', 'MT', 'LU', 'IS', 'RU', 'UA', 'BY', 'KZ', 'PK', 'BD',
+  'TW', 'CN', 'OTHER'
+];
+
+// EU countries for GDPR
+export const EU_COUNTRIES = [
+  'AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR', 'DE', 'GR', 'HU',
+  'IE', 'IT', 'LV', 'LT', 'LU', 'MT', 'NL', 'PL', 'PT', 'RO', 'SK', 'SI', 'ES', 'SE'
+];
 
 // Validation schema for registration
 const registerSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   email: z.string().email('Please enter a valid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  password: z.string().min(8, 'Password must be at least 8 characters')
+    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+    .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
+    .regex(/[0-9]/, 'Password must contain at least one number'),
   companyName: z.string().min(2, 'Company name must be at least 2 characters'),
+  country: z.string().refine((val) => VALID_COUNTRIES.includes(val), {
+    message: 'Please select a valid country',
+  }),
 });
 
 export async function POST(request: Request) {
@@ -23,7 +48,7 @@ export async function POST(request: Request) {
         { status: 403 }
       );
     }
-    
+
     // Parse and validate the request body
     const body = await request.json();
     const validatedData = registerSchema.parse(body);
@@ -42,8 +67,12 @@ export async function POST(request: Request) {
       );
     }
 
-    // Hash the password
-    const hashedPassword = await hash(validatedData.password, 10);
+    // Hash password with Argon2id
+    const hashedPassword = await hashPassword(validatedData.password);
+
+    // Generate verification token
+    const verificationToken = randomBytes(32).toString('hex');
+    const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
     // Create the company
     const [newCompany] = await db
@@ -59,7 +88,7 @@ export async function POST(request: Request) {
       throw new Error('Failed to create company');
     }
 
-    // Create the user with admin role
+    // Create the user with admin role (unverified)
     const [newUser] = await db
       .insert(users)
       .values({
@@ -68,10 +97,15 @@ export async function POST(request: Request) {
         password: hashedPassword,
         role: 'admin',
         companyId: newCompany.id,
+        country: validatedData.country,
+        emailVerified: false,
+        verificationToken,
+        verificationExpires,
+        lastActivityAt: new Date(),
         createdAt: new Date(),
         updatedAt: new Date(),
       })
-      .returning({ id: users.id });
+      .returning({ id: users.id, email: users.email });
 
     if (!newUser) {
       // If user creation fails, roll back by deleting the company
@@ -79,24 +113,38 @@ export async function POST(request: Request) {
       throw new Error('Failed to create user');
     }
 
+    // Send verification email
+    const baseUrl = process.env.NEXT_PUBLIC_URL || 'https://billing.valpha.dev';
+    const verifyUrl = `${baseUrl}/api/auth/verify-email?token=${verificationToken}`;
+
+    await sendReactEmail({
+      to: newUser.email,
+      subject: 'Verify your email - vAlpha',
+      react: VerifyEmail({
+        userName: validatedData.name,
+        verifyUrl,
+      }),
+    });
+
     // Success
-    return NextResponse.json({ 
-      message: 'User registered successfully',
+    return NextResponse.json({
+      message: 'Account created! Please check your email to verify your account.',
       userId: newUser.id,
+      requiresVerification: true,
     }, { status: 201 });
   } catch (error) {
     console.error('Registration error:', error);
-    
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { message: 'Validation error', errors: error.errors },
         { status: 400 }
       );
     }
-    
+
     return NextResponse.json(
       { message: 'Internal server error' },
       { status: 500 }
     );
   }
-} 
+}

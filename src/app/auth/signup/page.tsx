@@ -15,17 +15,79 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
 import { toast } from 'sonner';
-import { signIn } from 'next-auth/react';
 import { config } from '@/lib/config';
+import { CheckCircle2 } from 'lucide-react';
+
+// Country list with ISO 3166-1 alpha-2 codes
+const COUNTRIES = [
+  { code: 'US', name: 'United States' },
+  { code: 'CA', name: 'Canada' },
+  { code: 'GB', name: 'United Kingdom' },
+  { code: 'DE', name: 'Germany' },
+  { code: 'FR', name: 'France' },
+  { code: 'ES', name: 'Spain' },
+  { code: 'IT', name: 'Italy' },
+  { code: 'NL', name: 'Netherlands' },
+  { code: 'BE', name: 'Belgium' },
+  { code: 'AT', name: 'Austria' },
+  { code: 'CH', name: 'Switzerland' },
+  { code: 'AU', name: 'Australia' },
+  { code: 'NZ', name: 'New Zealand' },
+  { code: 'JP', name: 'Japan' },
+  { code: 'KR', name: 'South Korea' },
+  { code: 'SG', name: 'Singapore' },
+  { code: 'HK', name: 'Hong Kong' },
+  { code: 'IN', name: 'India' },
+  { code: 'BR', name: 'Brazil' },
+  { code: 'MX', name: 'Mexico' },
+  { code: 'AR', name: 'Argentina' },
+  { code: 'CL', name: 'Chile' },
+  { code: 'CO', name: 'Colombia' },
+  { code: 'PH', name: 'Philippines' },
+  { code: 'ID', name: 'Indonesia' },
+  { code: 'MY', name: 'Malaysia' },
+  { code: 'TH', name: 'Thailand' },
+  { code: 'AE', name: 'United Arab Emirates' },
+  { code: 'SA', name: 'Saudi Arabia' },
+  { code: 'ZA', name: 'South Africa' },
+  { code: 'NG', name: 'Nigeria' },
+  { code: 'KE', name: 'Kenya' },
+  { code: 'IL', name: 'Israel' },
+  { code: 'TR', name: 'Turkey' },
+  { code: 'PL', name: 'Poland' },
+  { code: 'SE', name: 'Sweden' },
+  { code: 'NO', name: 'Norway' },
+  { code: 'DK', name: 'Denmark' },
+  { code: 'FI', name: 'Finland' },
+  { code: 'IE', name: 'Ireland' },
+  { code: 'PT', name: 'Portugal' },
+  { code: 'GR', name: 'Greece' },
+  { code: 'CZ', name: 'Czech Republic' },
+  { code: 'HU', name: 'Hungary' },
+  { code: 'RO', name: 'Romania' },
+  { code: 'OTHER', name: 'Other' },
+].sort((a, b) => a.name.localeCompare(b.name));
 
 const formSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   email: z.string().email('Please enter a valid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  password: z.string()
+    .min(8, 'Password must be at least 8 characters')
+    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+    .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
+    .regex(/[0-9]/, 'Password must contain at least one number'),
   companyName: z.string().min(2, 'Company name must be at least 2 characters'),
+  country: z.string().min(2, 'Please select your country'),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -33,6 +95,7 @@ type FormValues = z.infer<typeof formSchema>;
 export default function SignUpPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [showVerificationMessage, setShowVerificationMessage] = useState(false);
   const isSignupDisabled = config.isSignupDisabled;
 
   const form = useForm<FormValues>({
@@ -42,6 +105,7 @@ export default function SignUpPage() {
       email: '',
       password: '',
       companyName: '',
+      country: '',
     },
   });
 
@@ -50,7 +114,7 @@ export default function SignUpPage() {
       toast.error('Signups are currently disabled');
       return;
     }
-    
+
     setIsLoading(true);
 
     try {
@@ -60,22 +124,15 @@ export default function SignUpPage() {
         body: JSON.stringify(values),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Registration failed');
+        throw new Error(data.message || 'Registration failed');
       }
 
-      toast.success('Account created successfully!');
-      
-      // Sign in the user automatically
-      await signIn('credentials', {
-        email: values.email,
-        password: values.password,
-        redirect: false,
-      });
-      
-      router.push('/dashboard');
-      router.refresh();
+      // Show verification message instead of auto-login
+      setShowVerificationMessage(true);
+      toast.success('Account created! Check your email to verify.');
     } catch (error) {
       if (error instanceof Error) {
         toast.error(error.message);
@@ -86,6 +143,37 @@ export default function SignUpPage() {
     } finally {
       setIsLoading(false);
     }
+  }
+
+  if (showVerificationMessage) {
+    return (
+      <div className="flex min-h-screen items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="space-y-1 text-center">
+            <div className="flex justify-center mb-4">
+              <CheckCircle2 className="h-16 w-16 text-green-500" />
+            </div>
+            <CardTitle className="text-2xl font-bold">Check Your Email</CardTitle>
+            <CardDescription>
+              We&apos;ve sent a verification link to your email address.
+              Please click the link to verify your account.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground text-center mb-4">
+              The verification link will expire in 24 hours.
+            </p>
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => router.push('/auth/signin')}
+            >
+              Go to Sign In
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   if (isSignupDisabled) {
@@ -173,6 +261,9 @@ export default function SignUpPage() {
                       />
                     </FormControl>
                     <FormMessage />
+                    <p className="text-xs text-muted-foreground">
+                      Min 8 characters with uppercase, lowercase, and number
+                    </p>
                   </FormItem>
                 )}
               />
@@ -193,6 +284,37 @@ export default function SignUpPage() {
                   </FormItem>
                 )}
               />
+              <FormField
+                control={form.control}
+                name="country"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Country</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      disabled={isLoading}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select your country" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {COUNTRIES.map((country) => (
+                          <SelectItem key={country.code} value={country.code}>
+                            {country.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                    <p className="text-xs text-muted-foreground">
+                      Required for data protection compliance
+                    </p>
+                  </FormItem>
+                )}
+              />
               <Button type="submit" className="w-full mt-6" disabled={isLoading}>
                 {isLoading ? 'Creating account...' : 'Create account'}
               </Button>
@@ -208,4 +330,4 @@ export default function SignUpPage() {
       </Card>
     </div>
   );
-} 
+}

@@ -43,11 +43,6 @@ export default async function LoginPage({
 
         <div className="mt-8 bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10 flex flex-col gap-4 justify-center items-center">
           <LoginForm />
-          <Button variant="ghost">
-            <Link href="/auth/portal/access" className="text-sm text-gray-600 hover:text-gray-900">
-              Internal User? Login to vAlpha
-            </Link>
-          </Button>
         </div>
       </div>
     </div>

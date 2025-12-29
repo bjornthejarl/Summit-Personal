@@ -20,7 +20,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { config } from '@/lib/config';
-import { CheckCircle2, AlertCircle, Mail } from 'lucide-react';
+import { CheckCircle2, AlertCircle, Mail, Shield } from 'lucide-react';
 
 const formSchema = z.object({
   email: z.string().email('Please enter a valid email address'),

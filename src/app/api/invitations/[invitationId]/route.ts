@@ -52,18 +52,13 @@ export async function DELETE(
       );
     }
 
-    // Update invitation status to cancelled
+    // Actually delete the invitation (instead of soft-cancel) to allow re-inviting
     await db
-      .update(companyInvitations)
-      .set({
-        status: 'cancelled',
-        updatedAt: new Date(),
-      })
+      .delete(companyInvitations)
       .where(
         and(
           eq(companyInvitations.id, parseInt(invitationId)),
-          eq(companyInvitations.companyId, companyId),
-          eq(companyInvitations.status, 'pending')
+          eq(companyInvitations.companyId, companyId)
         )
       );
 

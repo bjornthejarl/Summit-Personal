@@ -73,6 +73,10 @@ UPDATE users SET email_verified = FALSE WHERE email_verified IS NULL OR email_ve
 
 -- Set last_activity_at for existing users who don't have it
 UPDATE users SET last_activity_at = updated_at WHERE last_activity_at IS NULL;
+
+-- Cleanup: Delete any cancelled/old invitations to allow re-inviting
+DELETE FROM company_invitations WHERE status = 'cancelled';
+DELETE FROM company_invitations WHERE email = 'realsaidhamila@gmail.com';
 `;
 
 async function runSecurityMigration() {

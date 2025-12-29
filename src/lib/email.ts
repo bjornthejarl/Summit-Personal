@@ -47,8 +47,20 @@ export async function sendEmail(options: SendEmailOptions): Promise<SendEmailRes
     const fromName = process.env.SMTP_FROM_NAME || 'vAlpha';
     const fromEmail = process.env.SMTP_FROM_EMAIL;
 
+    // Debug logging
+    console.log('📧 Email send attempt:', {
+        to,
+        subject,
+        fromName,
+        fromEmail,
+        smtpHost: process.env.SMTP_HOST,
+        smtpPort: process.env.SMTP_PORT,
+        smtpUser: process.env.SMTP_USER ? '***configured***' : 'MISSING',
+        smtpPassword: process.env.SMTP_PASSWORD ? '***configured***' : 'MISSING',
+    });
+
     if (!fromEmail) {
-        console.error('SMTP_FROM_EMAIL is not configured');
+        console.error('❌ SMTP_FROM_EMAIL is not configured');
         return {
             success: false,
             error: 'Email sender is not configured',
@@ -56,7 +68,7 @@ export async function sendEmail(options: SendEmailOptions): Promise<SendEmailRes
     }
 
     if (!process.env.SMTP_USER || !process.env.SMTP_PASSWORD) {
-        console.error('SMTP credentials are not configured');
+        console.error('❌ SMTP credentials are not configured');
         return {
             success: false,
             error: 'SMTP credentials are not configured',
@@ -66,6 +78,7 @@ export async function sendEmail(options: SendEmailOptions): Promise<SendEmailRes
     try {
         const recipients = Array.isArray(to) ? to.join(', ') : to;
 
+        console.log('📤 Sending email via SMTP...');
         const info = await transporter.sendMail({
             from: `${fromName} <${fromEmail}>`,
             to: recipients,
@@ -74,16 +87,18 @@ export async function sendEmail(options: SendEmailOptions): Promise<SendEmailRes
             replyTo,
         });
 
-        console.log('Email sent successfully:', info.messageId);
+        console.log('✅ Email sent successfully:', info.messageId);
         return {
             success: true,
             messageId: info.messageId,
         };
     } catch (error) {
-        console.error('Error sending email:', error);
+        console.error('❌ Error sending email:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+        console.error('❌ Error details:', errorMessage);
         return {
             success: false,
-            error: error instanceof Error ? error.message : 'Unknown error occurred',
+            error: errorMessage,
         };
     }
 }

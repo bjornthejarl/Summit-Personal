@@ -122,6 +122,7 @@ export const authOptions: NextAuthOptions = {
           role: user.role,
           companyId: user.companyId?.toString(),
           permissions,
+          mfaEnabled: user.mfaEnabled || false,
         };
       },
     }),
@@ -133,6 +134,7 @@ export const authOptions: NextAuthOptions = {
         token.role = user.role;
         token.companyId = user.companyId;
         token.permissions = user.permissions;
+        token.mfaEnabled = (user as any).mfaEnabled || false;
       }
       return token;
     },
@@ -142,6 +144,7 @@ export const authOptions: NextAuthOptions = {
         session.user.role = token.role as string;
         session.user.companyId = token.companyId as string | undefined;
         session.user.permissions = token.permissions as Record<string, boolean> | undefined;
+        (session.user as any).mfaEnabled = token.mfaEnabled as boolean;
       }
       return session;
     },

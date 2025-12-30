@@ -21,7 +21,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Trash2, Package } from 'lucide-react';
+import { Trash2, Package, AlertCircle } from 'lucide-react';
+import Link from 'next/link';
 
 interface CatalogItem {
   id: number;
@@ -46,8 +47,9 @@ export function QuoteItemForm({
 }: QuoteItemFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [catalogItems, setCatalogItems] = useState<CatalogItem[]>([]);
-  const [isLoadingItems, setIsLoadingItems] = useState(false);
-  const [selectedItemId, setSelectedItemId] = useState<string>('custom');
+  const [isLoadingItems, setIsLoadingItems] = useState(true);
+  const [selectedItemId, setSelectedItemId] = useState<string>('');
+  const [itemError, setItemError] = useState<string>('');
   const isEditing = !!initialData?.id;
 
   // Fetch catalog items on mount
@@ -92,22 +94,23 @@ export function QuoteItemForm({
   // Handle catalog item selection
   const handleItemSelect = (itemId: string) => {
     setSelectedItemId(itemId);
+    setItemError('');
 
-    if (itemId === 'custom') {
-      // Reset for custom item
-      form.setValue('description', '');
-      form.setValue('unitPrice', 0);
-    } else {
-      // Find the selected catalog item and populate form
-      const item = catalogItems.find(i => i.id.toString() === itemId);
-      if (item) {
-        form.setValue('description', item.description || item.name);
-        form.setValue('unitPrice', parseFloat(item.defaultUnitPrice));
-      }
+    // Find the selected catalog item and populate form
+    const item = catalogItems.find(i => i.id.toString() === itemId);
+    if (item) {
+      form.setValue('description', item.description || item.name);
+      form.setValue('unitPrice', parseFloat(item.defaultUnitPrice));
     }
   };
 
   const handleSubmit = async (values: QuoteItemFormValues) => {
+    // Validate that an item is selected (for new items only)
+    if (!isEditing && !selectedItemId) {
+      setItemError('Please select an item from the catalog');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       onSubmit(values);
@@ -116,28 +119,53 @@ export function QuoteItemForm({
     }
   };
 
+  // Show message if no items exist
+  if (!isLoadingItems && catalogItems.length === 0 && !isEditing) {
+    return (
+      <div className="text-center py-8 space-y-4">
+        <div className="flex justify-center">
+          <AlertCircle className="h-12 w-12 text-muted-foreground" />
+        </div>
+        <div>
+          <h3 className="font-medium text-lg">No Items Available</h3>
+          <p className="text-muted-foreground mt-1">
+            You need to create items in your catalog before adding them to a quote.
+          </p>
+        </div>
+        <div className="flex justify-center gap-2">
+          <Button variant="outline" onClick={onCancel}>
+            Cancel
+          </Button>
+          <Link href="/items">
+            <Button>
+              <Package className="h-4 w-4 mr-2" />
+              Go to Items
+            </Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <Form {...form}>
       <div className="space-y-4">
-        {/* Item Selector */}
-        {!isEditing && catalogItems.length > 0 && (
+        {/* Item Selector - Required for new items */}
+        {!isEditing && (
           <div className="space-y-2">
             <FormLabel className="flex items-center gap-2">
               <Package className="h-4 w-4" />
-              Select from Catalog
+              Select Item *
             </FormLabel>
             <Select
               value={selectedItemId}
               onValueChange={handleItemSelect}
               disabled={isLoadingItems || isSubmitting}
             >
-              <SelectTrigger>
-                <SelectValue placeholder="Choose a saved item or create custom" />
+              <SelectTrigger className={itemError ? 'border-destructive' : ''}>
+                <SelectValue placeholder={isLoadingItems ? "Loading items..." : "Select an item from your catalog"} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="custom">
-                  <span className="text-muted-foreground">✏️ Custom Item</span>
-                </SelectItem>
                 {catalogItems.map((item) => (
                   <SelectItem key={item.id} value={item.id.toString()}>
                     <div className="flex justify-between items-center gap-4">
@@ -150,6 +178,9 @@ export function QuoteItemForm({
                 ))}
               </SelectContent>
             </Select>
+            {itemError && (
+              <p className="text-sm text-destructive">{itemError}</p>
+            )}
           </div>
         )}
 
@@ -165,6 +196,7 @@ export function QuoteItemForm({
                     placeholder="Item description"
                     {...field}
                     disabled={isSubmitting}
+                    readOnly={!isEditing && !selectedItemId}
                   />
                 </FormControl>
                 <FormMessage />
@@ -185,7 +217,7 @@ export function QuoteItemForm({
                     step="0.01"
                     {...field}
                     onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || (!isEditing && !selectedItemId)}
                   />
                 </FormControl>
                 <FormMessage />
@@ -257,7 +289,7 @@ export function QuoteItemForm({
           <Button
             type="submit"
             onClick={form.handleSubmit(handleSubmit)}
-            disabled={isSubmitting}
+            disabled={isSubmitting || (!isEditing && !selectedItemId)}
           >
             {isSubmitting
               ? (isEditing ? 'Updating...' : 'Adding...')

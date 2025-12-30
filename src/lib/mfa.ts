@@ -13,7 +13,7 @@ import { encrypt, decrypt } from './crypto';
  * - Compatible with Google Authenticator, Authy, etc.
  */
 
-const MFA_ISSUER = process.env.MFA_ISSUER || 'vAlpha';
+const MFA_ISSUER = 'vAlpha - Billing';
 const BACKUP_CODE_COUNT = 10;
 
 /**
@@ -29,6 +29,7 @@ export function generateMFASecret(userEmail: string): {
     const secret = new OTPAuth.Secret({ size: 20 });
 
     // Create TOTP instance
+    // In authenticator apps, this shows as "vAlpha - Billing (user@email.com)"
     const totp = new OTPAuth.TOTP({
         issuer: MFA_ISSUER,
         label: userEmail,

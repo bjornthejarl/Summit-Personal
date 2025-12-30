@@ -221,7 +221,7 @@ export default async function QuoteDetailPage({
                 {isExpired && quote.status === 'sent' && (
                     <div className="px-6 py-4 bg-gray-100 border-t border-gray-200">
                         <p className="text-sm text-gray-600">
-                            This quote has expired. Please contact us if you'd like a new quote.
+                            This quote has expired. Please contact us if you&apos;d like a new quote.
                         </p>
                     </div>
                 )}

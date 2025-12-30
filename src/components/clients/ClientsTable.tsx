@@ -165,16 +165,13 @@ export function ClientsTable({
                             <EyeIcon className="mr-2 h-4 w-4" /> View
                           </Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <div className="w-full" onClick={(e) => e.stopPropagation()}>
-                            <ClientDialog
-                              triggerLabel={<div className="flex items-center"><PencilIcon className="mr-2 h-4 w-4" /> Edit</div>}
-                              triggerVariant="ghost"
-                              initialData={client}
-                              onSuccess={handleEditSuccess}
-                            />
-                          </div>
-                        </DropdownMenuItem>
+                        <ClientDialog
+                          triggerLabel={<><PencilIcon className="mr-2 h-4 w-4" /> Edit</>}
+                          triggerVariant="ghost"
+                          triggerClassName="w-full justify-start h-auto px-2 py-1.5 font-normal"
+                          initialData={client}
+                          onSuccess={handleEditSuccess}
+                        />
                         <DropdownMenuItem
                           className="text-destructive focus:text-destructive"
                           disabled={isDeleting === client.id}

@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
   return withAuth<ClientListResponse | ErrorResponse>(request, async (authInfo) => {
     try {
       const { companyId } = authInfo;
-      
+
       // Get query parameters
       const { searchParams } = new URL(request.url);
       const page = parseInt(searchParams.get('page') || '1');
@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
         .select({ count: sql`COUNT(*)` })
         .from(clients)
         .where(and(eq(clients.companyId, companyId), eq(clients.softDelete, false)));
-      
+
       const total = Number(countResult[0].count);
 
       // Get clients with pagination
@@ -127,16 +127,24 @@ export async function POST(request: NextRequest) {
         .returning();
 
       return NextResponse.json(newClient, { status: 201 });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating client:', error);
-      
+
       if (error instanceof ZodError) {
         return NextResponse.json(
           { message: 'Validation error', errors: error.errors },
           { status: 400 }
         );
       }
-      
+
+      // Handle PostgreSQL duplicate key constraint error
+      if (error?.code === '23505') {
+        return NextResponse.json(
+          { message: 'A client with this email already exists' },
+          { status: 409 }
+        );
+      }
+
       return NextResponse.json(
         { message: 'Internal server error' },
         { status: 500 }

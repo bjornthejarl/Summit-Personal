@@ -26,6 +26,7 @@ interface ClientDialogProps {
   initialData?: Partial<Client>;
   title?: string;
   triggerVariant?: 'default' | 'outline' | 'secondary' | 'destructive' | 'ghost' | 'link';
+  triggerClassName?: string;
   onSuccess?: (client: any) => void;
 }
 
@@ -34,6 +35,7 @@ export function ClientDialog({
   initialData,
   title = initialData?.id ? 'Edit Client' : 'Add Client',
   triggerVariant = 'default',
+  triggerClassName,
   onSuccess,
 }: ClientDialogProps) {
   const [open, setOpen] = useState(false);
@@ -48,7 +50,7 @@ export function ClientDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant={triggerVariant}>
+        <Button variant={triggerVariant} className={triggerClassName}>
           {!initialData && typeof triggerLabel === 'string' && <PlusIcon className="mr-2 h-4 w-4" />}
           {triggerLabel}
         </Button>

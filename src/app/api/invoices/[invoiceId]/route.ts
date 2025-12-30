@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { invoices, invoiceItems, clients } from '@/lib/db/schema';
+import { invoices, invoiceItems, clients, income } from '@/lib/db/schema';
 import { and, eq } from 'drizzle-orm';
 import { invoiceSchema } from '@/lib/validations/invoice';
 import { ZodError } from 'zod';
@@ -132,7 +132,7 @@ export async function PUT(
 
       // Calculate values based on items, ignoring any client-provided values
       const subtotal = validatedData.items.reduce(
-        (sum, item) => sum + item.quantity * parseFloat(item.unitPrice.toString()), 
+        (sum, item) => sum + item.quantity * parseFloat(item.unitPrice.toString()),
         0
       );
       // Ensure tax is a percentage between 0-100, not a multiplier
@@ -179,7 +179,7 @@ export async function PUT(
         const itemsToInsert = validatedData.items.map((item) => {
           // Calculate amount server-side regardless of what client sent
           const amount = item.quantity * parseFloat(item.unitPrice.toString());
-          
+
           return {
             invoiceId: id,
             description: item.description,
@@ -195,6 +195,33 @@ export async function PUT(
           .insert(invoiceItems)
           .values(itemsToInsert)
           .returning();
+
+        // Auto-create income record when invoice is marked as paid
+        if (validatedData.status === 'paid' && existingInvoice[0].status !== 'paid') {
+          // Check if income already exists for this invoice
+          const existingIncome = await tx
+            .select({ id: income.id })
+            .from(income)
+            .where(eq(income.invoiceId, id))
+            .limit(1);
+
+          if (existingIncome.length === 0) {
+            // Create income record
+            await tx.insert(income).values({
+              companyId,
+              clientId: validatedData.clientId,
+              invoiceId: id,
+              source: `Invoice #${validatedData.invoiceNumber}`,
+              description: `Payment received for Invoice #${validatedData.invoiceNumber}`,
+              amount: total.toString(),
+              currency: existingInvoice[0].currency || 'USD',
+              incomeDate: new Date().toISOString().split('T')[0],
+              recurring: 'none',
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            });
+          }
+        }
 
         return NextResponse.json({ ...updatedInvoice, items });
       });

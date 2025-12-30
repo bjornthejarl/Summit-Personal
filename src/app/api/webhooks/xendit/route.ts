@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { invoices, payments, accounts, transactions } from '@/lib/db/schema';
+import { invoices, payments, accounts, transactions, income } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { verifyWebhookSignature } from '@/lib/xendit';
 import { format } from 'date-fns';
@@ -27,16 +27,16 @@ export async function POST(request: NextRequest) {
 
     // Extract the external_id which should be in the format 'inv-{invoiceId}-{invoiceNumber}'
     const externalId = payload.data.external_id;
-    
+
     // Extract invoice ID from the external_id pattern (inv-{invoiceId}-{invoiceNumber})
     const invoiceIdMatch = externalId.match(/^inv-(\d+)-/);
     if (!invoiceIdMatch || !invoiceIdMatch[1]) {
       console.error('Invalid external_id format:', externalId);
       return NextResponse.json({ message: 'Invalid external_id format' }, { status: 400 });
     }
-    
+
     const invoiceId = parseInt(invoiceIdMatch[1]);
-    
+
     // Fetch the invoice
     const [invoice] = await db
       .select()
@@ -48,12 +48,12 @@ export async function POST(request: NextRequest) {
         )
       )
       .limit(1);
-    
+
     if (!invoice) {
       console.error('Invoice not found for ID:', invoiceId);
       return NextResponse.json({ message: 'Invoice not found' }, { status: 404 });
     }
-    
+
     // Check if payment for this Xendit invoice already processed
     const existingPayment = await db
       .select()
@@ -66,11 +66,11 @@ export async function POST(request: NextRequest) {
         )
       )
       .limit(1);
-    
+
     if (existingPayment.length > 0) {
       return NextResponse.json({ message: 'Payment already processed' }, { status: 200 });
     }
-    
+
     // Find a default account to record the transaction (optional)
     const [account] = await db
       .select()
@@ -82,11 +82,11 @@ export async function POST(request: NextRequest) {
         )
       )
       .limit(1);
-      
+
     // Format the payment date
     const paidAtDate = new Date(payload.data.paid_at);
     const formattedPaymentDate = format(paidAtDate, 'yyyy-MM-dd');
-    
+
     // Process the payment in a transaction to ensure database consistency
     await db.transaction(async (tx) => {
       // 1. Create the payment record
@@ -108,7 +108,7 @@ export async function POST(request: NextRequest) {
           softDelete: false,
         })
         .returning();
-      
+
       // 2. Update the invoice status
       await tx
         .update(invoices)
@@ -118,7 +118,7 @@ export async function POST(request: NextRequest) {
           updatedAt: new Date(),
         })
         .where(eq(invoices.id, invoice.id));
-      
+
       // 3. Create a transaction record if we have an account
       if (account) {
         const [transaction] = await tx
@@ -138,7 +138,7 @@ export async function POST(request: NextRequest) {
             softDelete: false,
           })
           .returning();
-        
+
         // 4. Update the payment with the transaction link
         await tx
           .update(payments)
@@ -146,12 +146,12 @@ export async function POST(request: NextRequest) {
             transactionId: transaction.id,
           })
           .where(eq(payments.id, payment.id));
-        
+
         // 5. Update the account balance
         const currentBalance = parseFloat(account.currentBalance);
         const paymentAmount = parseFloat(payload.data.amount);
         const newBalance = currentBalance + paymentAmount;
-        
+
         await tx
           .update(accounts)
           .set({
@@ -160,10 +160,33 @@ export async function POST(request: NextRequest) {
           })
           .where(eq(accounts.id, account.id));
       }
+
+      // 6. Auto-create income record
+      const existingIncome = await tx
+        .select({ id: income.id })
+        .from(income)
+        .where(eq(income.invoiceId, invoice.id))
+        .limit(1);
+
+      if (existingIncome.length === 0) {
+        await tx.insert(income).values({
+          companyId: invoice.companyId,
+          clientId: invoice.clientId,
+          invoiceId: invoice.id,
+          source: `Invoice #${invoice.invoiceNumber}`,
+          description: `Payment received via Xendit for Invoice #${invoice.invoiceNumber}`,
+          amount: payload.data.amount.toString(),
+          currency: payload.data.currency || 'USD',
+          incomeDate: formattedPaymentDate,
+          recurring: 'none',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        });
+      }
     });
-    
+
     return NextResponse.json({ message: 'Payment processed successfully' }, { status: 200 });
-    
+
   } catch (error) {
     console.error('Error processing Xendit webhook:', error);
     return NextResponse.json(

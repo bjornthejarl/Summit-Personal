@@ -153,13 +153,21 @@ export async function PUT(
         .returning();
 
       return NextResponse.json(updatedClient);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating client:', error);
 
       if (error instanceof ZodError) {
         return NextResponse.json(
           { message: 'Validation error', errors: error.errors },
           { status: 400 }
+        );
+      }
+
+      // Handle PostgreSQL duplicate key constraint error
+      if (error?.code === '23505') {
+        return NextResponse.json(
+          { message: 'A client with this email already exists' },
+          { status: 409 }
         );
       }
 

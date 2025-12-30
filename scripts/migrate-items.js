@@ -57,12 +57,6 @@ async function runItemsMigration() {
     try {
         await sql.unsafe(MIGRATION_SQL);
         console.log('✅ Items migration completed!');
-        console.log('');
-        console.log('📋 Items catalog is now available:');
-        console.log('   - Create reusable items at /items');
-        console.log('   - Use saved items when creating quotes/invoices');
-        console.log('   - Custom items can still be created inline');
-        console.log('');
         await sql.end();
         return true;
     } catch (error) {

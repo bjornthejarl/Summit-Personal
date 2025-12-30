@@ -1,22 +1,31 @@
-import { ItemList } from '@/components/items/ItemList';
-import { Metadata } from 'next';
+'use client';
 
-export const metadata: Metadata = {
-    title: 'Items | vAlpha',
-    description: 'Manage your items and products catalog',
-};
+import { Suspense, useCallback, useState } from 'react';
+import { ItemList, AddItemButton } from '@/components/items/ItemList';
+
+function ItemsPageContent() {
+    const [refreshKey, setRefreshKey] = useState(0);
+
+    const handleItemCreated = useCallback(() => {
+        setRefreshKey(prev => prev + 1);
+    }, []);
+
+    return (
+        <div className="space-y-6">
+            <div className="flex items-center justify-between">
+                <h1 className="text-3xl font-bold">Items</h1>
+                <AddItemButton onSuccess={handleItemCreated} />
+            </div>
+
+            <ItemList key={refreshKey} />
+        </div>
+    );
+}
 
 export default function ItemsPage() {
     return (
-        <div className="container mx-auto py-6 space-y-8">
-            <div className="flex justify-between items-center">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Items</h1>
-                    <p className="text-muted-foreground">Manage your products and services catalog</p>
-                </div>
-            </div>
-
-            <ItemList className="mt-6" />
-        </div>
+        <Suspense fallback={<div className="py-8 text-center text-muted-foreground">Loading...</div>}>
+            <ItemsPageContent />
+        </Suspense>
     );
 }

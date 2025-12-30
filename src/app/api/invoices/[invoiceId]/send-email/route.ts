@@ -63,7 +63,7 @@ export async function POST(
       }
 
       // Build URLs for the email
-      const baseUrl = process.env.NEXT_PUBLIC_URL;
+      const baseUrl = process.env.NEXT_PUBLIC_URL || 'https://billing.valpha.dev';
       const viewUrl = `${baseUrl}/portal/invoices/${invoiceId}`;
 
       // Create a simple HTML email template

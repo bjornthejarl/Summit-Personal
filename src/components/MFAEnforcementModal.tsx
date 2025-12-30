@@ -17,7 +17,7 @@ import { Shield, Copy, Download, CheckCircle2 } from 'lucide-react';
 import Image from 'next/image';
 
 export function MFAEnforcementModal() {
-    const { data: session, update } = useSession();
+    const { data: session, status, update } = useSession();
     const [open, setOpen] = useState(false);
     const [step, setStep] = useState<'qr' | 'verify' | 'backup' | 'verify-codes'>('qr');
     const [qrCode, setQrCode] = useState<string>('');
@@ -35,22 +35,25 @@ export function MFAEnforcementModal() {
     // Check if admin needs MFA
     useEffect(() => {
         // Only trigger enrollment if:
-        // 1. User is admin
-        // 2. MFA is not enabled
-        // 3. Enrollment hasn't been initiated yet
+        // 1. Session is fully authenticated (not loading)
+        // 2. User is admin
+        // 3. MFA is explicitly false (not undefined during loading)
+        // 4. Enrollment hasn't been initiated yet
         if (
+            status === 'authenticated' &&
             session?.user?.role === 'admin' &&
-            !(session?.user as any).mfaEnabled &&
+            (session?.user as any).mfaEnabled === false &&
             !enrollmentInitiated.current
         ) {
             enrollmentInitiated.current = true;
             setOpen(true);
             enrollMFA();
         }
-    }, [session]);
+    }, [session, status]);
 
     const enrollMFA = async () => {
         try {
+            setIsLoading(true);
             const response = await fetch('/api/mfa/enroll', { method: 'POST' });
             const data = await response.json();
 
@@ -58,11 +61,19 @@ export function MFAEnforcementModal() {
                 setQrCode(data.qrCode);
                 setStep('qr');
             } else {
-                toast.error('Failed to start MFA enrollment');
+                // Don't show error if user already has MFA enabled
+                if (data.error !== 'MFA already enabled') {
+                    toast.error('Failed to start MFA enrollment');
+                }
+                setOpen(false);
                 enrollmentInitiated.current = false; // Reset on error
             }
         } catch (error) {
             toast.error('Error starting MFA enrollment');
+            setOpen(false);
+            enrollmentInitiated.current = false;
+        } finally {
+            setIsLoading(false);
         }
     };
 

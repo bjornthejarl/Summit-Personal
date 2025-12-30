@@ -14,7 +14,22 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Trash2 } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Trash2, Package } from 'lucide-react';
+
+interface CatalogItem {
+  id: number;
+  name: string;
+  description: string | null;
+  defaultUnitPrice: string;
+  category: string | null;
+}
 
 interface InvoiceItemFormProps {
   initialData?: Partial<InvoiceItemFormValues>;
@@ -31,7 +46,29 @@ export function InvoiceItemForm({
 }: InvoiceItemFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [calculatedAmount, setCalculatedAmount] = useState(0);
+  const [catalogItems, setCatalogItems] = useState<CatalogItem[]>([]);
+  const [isLoadingItems, setIsLoadingItems] = useState(false);
+  const [selectedItemId, setSelectedItemId] = useState<string>('custom');
   const isEditing = !!initialData?.id;
+
+  // Fetch catalog items on mount
+  useEffect(() => {
+    const fetchItems = async () => {
+      setIsLoadingItems(true);
+      try {
+        const response = await fetch('/api/items?activeOnly=true&limit=100');
+        if (response.ok) {
+          const data = await response.json();
+          setCatalogItems(data.data || []);
+        }
+      } catch (error) {
+        console.error('Error fetching catalog items:', error);
+      } finally {
+        setIsLoadingItems(false);
+      }
+    };
+    fetchItems();
+  }, []);
 
   const form = useForm<InvoiceItemFormValues>({
     resolver: zodResolver(invoiceItemSchema),
@@ -52,6 +89,24 @@ export function InvoiceItemForm({
     setCalculatedAmount(amount);
   }, [quantity, unitPrice]);
 
+  // Handle catalog item selection
+  const handleItemSelect = (itemId: string) => {
+    setSelectedItemId(itemId);
+
+    if (itemId === 'custom') {
+      // Reset for custom item
+      form.setValue('description', '');
+      form.setValue('unitPrice', 0);
+    } else {
+      // Find the selected catalog item and populate form
+      const item = catalogItems.find(i => i.id.toString() === itemId);
+      if (item) {
+        form.setValue('description', item.description || item.name);
+        form.setValue('unitPrice', parseFloat(item.defaultUnitPrice));
+      }
+    }
+  };
+
   const handleSubmit = async (values: InvoiceItemFormValues) => {
     setIsSubmitting(true);
     try {
@@ -69,6 +124,40 @@ export function InvoiceItemForm({
   return (
     <Form {...form}>
       <div className="space-y-4">
+        {/* Item Selector */}
+        {!isEditing && catalogItems.length > 0 && (
+          <div className="space-y-2">
+            <FormLabel className="flex items-center gap-2">
+              <Package className="h-4 w-4" />
+              Select from Catalog
+            </FormLabel>
+            <Select
+              value={selectedItemId}
+              onValueChange={handleItemSelect}
+              disabled={isLoadingItems || isSubmitting}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Choose a saved item or create custom" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="custom">
+                  <span className="text-muted-foreground">✏️ Custom Item</span>
+                </SelectItem>
+                {catalogItems.map((item) => (
+                  <SelectItem key={item.id} value={item.id.toString()}>
+                    <div className="flex justify-between items-center gap-4">
+                      <span>{item.name}</span>
+                      <span className="text-muted-foreground text-sm">
+                        ${parseFloat(item.defaultUnitPrice).toFixed(2)}
+                      </span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
           <FormField
             control={form.control}
@@ -177,4 +266,4 @@ export function InvoiceItemForm({
       </div>
     </Form>
   );
-} 
+}

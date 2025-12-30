@@ -37,12 +37,14 @@ type ErrorResponse = {
 // GET /api/items/[itemId] - Get item by ID
 export async function GET(
     request: NextRequest,
-    { params }: { params: { itemId: string } }
+    { params }: { params: Promise<{ itemId: string }> }
 ) {
+    const { itemId: itemIdStr } = await params;
+
     return withAuth<ItemResponse | ErrorResponse>(request, async (authInfo) => {
         try {
             const { companyId } = authInfo;
-            const itemId = parseInt(params.itemId);
+            const itemId = parseInt(itemIdStr);
 
             if (isNaN(itemId)) {
                 return NextResponse.json(
@@ -83,12 +85,14 @@ export async function GET(
 // PUT /api/items/[itemId] - Update item
 export async function PUT(
     request: NextRequest,
-    { params }: { params: { itemId: string } }
+    { params }: { params: Promise<{ itemId: string }> }
 ) {
+    const { itemId: itemIdStr } = await params;
+
     return withAuth<ItemResponse | ErrorResponse>(request, async (authInfo) => {
         try {
             const { companyId } = authInfo;
-            const itemId = parseInt(params.itemId);
+            const itemId = parseInt(itemIdStr);
 
             if (isNaN(itemId)) {
                 return NextResponse.json(
@@ -179,12 +183,14 @@ export async function PUT(
 // DELETE /api/items/[itemId] - Soft delete item
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { itemId: string } }
+    { params }: { params: Promise<{ itemId: string }> }
 ) {
+    const { itemId: itemIdStr } = await params;
+
     return withAuth<{ message: string } | ErrorResponse>(request, async (authInfo) => {
         try {
             const { companyId } = authInfo;
-            const itemId = parseInt(params.itemId);
+            const itemId = parseInt(itemIdStr);
 
             if (isNaN(itemId)) {
                 return NextResponse.json(

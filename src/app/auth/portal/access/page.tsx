@@ -104,29 +104,21 @@ function SignInForm() {
 
     setIsLoading(true);
     try {
-      // Verify MFA code
-      const verifyResponse = await fetch('/api/mfa/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: mfaCode }),
-      });
-
-      if (!verifyResponse.ok) {
-        toast.error('Invalid MFA code');
-        setIsLoading(false);
-        return;
-      }
-
-      // Now sign in with verified MFA flag
+      // Sign in with MFA code - the credentials provider will verify it
       const response = await signIn('credentials', {
         email: loginCredentials.email,
         password: loginCredentials.password,
-        mfaToken: 'VERIFIED',
+        mfaToken: mfaCode, // Pass the actual TOTP code, not 'VERIFIED'
         redirect: false,
       });
 
       if (response?.error) {
-        toast.error('Login failed. Please try again.');
+        if (response.error === 'MFA_INVALID') {
+          toast.error('Invalid MFA code. Please try again.');
+        } else {
+          toast.error('Login failed. Please try again.');
+        }
+        setIsLoading(false);
       } else {
         router.push('/dashboard');
         router.refresh();
@@ -134,6 +126,7 @@ function SignInForm() {
     } catch (error) {
       toast.error('Something went wrong. Please try again.');
       console.error(error);
+      setIsLoading(false);
     } finally {
       setIsLoading(false);
     }

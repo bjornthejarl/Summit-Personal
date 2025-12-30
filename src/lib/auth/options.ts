@@ -70,10 +70,29 @@ export const authOptions: NextAuthOptions = {
             throw new Error('MFA_REQUIRED');
           }
 
-          // Verify MFA token (will be handled by separate verification endpoint)
-          // The frontend should call /api/mfa/verify before retrying sign-in
-          // For now, we'll assume it was pre-verified if mfaToken is 'VERIFIED'
-          if (mfaToken !== 'VERIFIED') {
+          // Verify MFA token
+          const { verifyTOTP, verifyAndConsumeBackupCode } = await import('@/lib/mfa');
+
+          let isValid = false;
+
+          if (isBackupCode && user.backupCodes) {
+            // Verify backup code
+            const result = verifyAndConsumeBackupCode(user.backupCodes, mfaToken);
+            isValid = result.valid;
+
+            if (result.valid) {
+              // Update remaining backup codes
+              await db
+                .update(users)
+                .set({ backupCodes: result.remainingEncryptedCodes, updatedAt: new Date() })
+                .where(eq(users.id, user.id));
+            }
+          } else if (user.mfaSecret) {
+            // Verify TOTP code
+            isValid = verifyTOTP(user.mfaSecret, mfaToken);
+          }
+
+          if (!isValid) {
             throw new Error('MFA_INVALID');
           }
         }

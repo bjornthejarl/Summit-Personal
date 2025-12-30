@@ -179,12 +179,12 @@ export async function PUT(
   });
 }
 
-// DELETE /api/clients/[clientId] - Soft delete a client
+// DELETE /api/clients/[clientId] - Hard delete a client
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ clientId: string }> }
 ) {
-  return withAuth<ClientResponse | ErrorResponse>(request, async (authInfo) => {
+  return withAuth<{ message: string } | ErrorResponse>(request, async (authInfo) => {
     try {
       // Validate clientId parameter
       const { clientId } = await params;
@@ -198,8 +198,7 @@ export async function DELETE(
         .where(
           and(
             eq(clients.id, id),
-            eq(clients.companyId, companyId),
-            eq(clients.softDelete, false)
+            eq(clients.companyId, companyId)
           )
         )
         .limit(1);
@@ -208,22 +207,17 @@ export async function DELETE(
         return NextResponse.json({ message: 'Client not found' }, { status: 404 });
       }
 
-      // Soft delete client
-      const [deletedClient] = await db
-        .update(clients)
-        .set({
-          softDelete: true,
-          updatedAt: new Date(),
-        })
+      // Hard delete client - actually remove from database
+      await db
+        .delete(clients)
         .where(
           and(
             eq(clients.id, id),
             eq(clients.companyId, companyId)
           )
-        )
-        .returning();
+        );
 
-      return NextResponse.json(deletedClient);
+      return NextResponse.json({ message: 'Client deleted successfully' });
     } catch (error) {
       console.error('Error deleting client:', error);
 

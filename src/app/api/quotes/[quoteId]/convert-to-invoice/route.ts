@@ -14,24 +14,24 @@ export async function POST(
 ) {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session?.user || !session.user.companyId) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       );
     }
-    
-    const { quoteId } = await params; 
+
+    const { quoteId } = await params;
     const companyId = session.user.companyId;
-    
+
     if (isNaN(Number(quoteId))) {
       return NextResponse.json(
         { error: 'Invalid quote ID' },
         { status: 400 }
       );
     }
-    
+
     // Find the quote and check if it belongs to the user's company
     const quote = await db.select().from(quotes).where(
       and(
@@ -40,17 +40,17 @@ export async function POST(
         eq(quotes.softDelete, false)
       )
     );
-    
+
     if (!quote) {
       return NextResponse.json(
         { error: 'Quote not found' },
         { status: 404 }
       );
     }
-    
+
     // Fetch company data to get defaultCurrency
     const [company] = await db.select().from(companies).where(eq(companies.id, Number(companyId)));
-    
+
     // Check if the quote is already converted to an invoice
     if (quote[0].convertedToInvoiceId) {
       return NextResponse.json(
@@ -58,7 +58,7 @@ export async function POST(
         { status: 400 }
       );
     }
-    
+
     // Check if the quote is in a valid state to be converted (e.g., accepted)
     if (quote[0].status !== 'accepted') {
       return NextResponse.json(
@@ -66,13 +66,13 @@ export async function POST(
         { status: 400 }
       );
     }
-    
+
     // Get the quote items
     const quoteItemsList = await db.select().from(quoteItems).where(eq(quoteItems.quoteId, Number(quoteId)));
-    
+
     // Generate a new invoice number
     const invoiceNumber = generateInvoiceNumber();
-    
+
     // Start a transaction to create the invoice
     const result = await db.transaction(async (tx) => {
       // Create the invoice
@@ -89,14 +89,14 @@ export async function POST(
           taxRate: quote[0].taxRate,
           total: quote[0].total,
           notes: quote[0].notes,
-          currency: company?.defaultCurrency || 'IDR',
+          currency: company?.defaultCurrency || 'USD',
           recurring: 'none',
           createdAt: new Date(),
           updatedAt: new Date(),
           softDelete: false,
         })
         .returning();
-      
+
       // Create the invoice items
       const invoiceItemsData = quoteItemsList.map(item => ({
         invoiceId: newInvoice.id,
@@ -107,9 +107,9 @@ export async function POST(
         createdAt: new Date(),
         updatedAt: new Date(),
       }));
-      
+
       await tx.insert(invoiceItems).values(invoiceItemsData);
-      
+
       // Update the quote with the invoice ID reference
       await tx.update(quotes)
         .set({
@@ -117,15 +117,15 @@ export async function POST(
           updatedAt: new Date(),
         })
         .where(eq(quotes.id, Number(quoteId)));
-      
+
       return newInvoice;
     });
-    
+
     return NextResponse.json({
       message: 'Quote successfully converted to invoice',
       invoiceId: result.id,
     });
-    
+
   } catch (error) {
     console.error('Error converting quote to invoice:', error);
     return NextResponse.json(

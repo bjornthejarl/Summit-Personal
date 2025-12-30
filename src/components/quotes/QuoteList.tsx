@@ -77,11 +77,11 @@ export function QuoteList({ className }: QuoteListProps) {
       });
 
       const response = await fetch(`/api/quotes?${params}`);
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch quotes');
       }
-      
+
       const data = await response.json();
       setQuotes(data.data || []);
       setTotalPages(Math.ceil(data.total / 10));
@@ -128,11 +128,11 @@ export function QuoteList({ className }: QuoteListProps) {
         const response = await fetch(`/api/quotes/${id}`, {
           method: 'DELETE',
         });
-        
+
         if (!response.ok) {
           throw new Error('Failed to delete quote');
         }
-        
+
         toast.success('Quote deleted successfully');
         fetchQuotes();
       } catch (error) {
@@ -179,7 +179,7 @@ export function QuoteList({ className }: QuoteListProps) {
               <SelectItem value="expired">Expired</SelectItem>
             </SelectContent>
           </Select>
-          
+
           <div className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
@@ -190,18 +190,18 @@ export function QuoteList({ className }: QuoteListProps) {
             />
           </div>
         </div>
-        
+
         <Button onClick={handleNewQuote}>
           <Plus className="h-4 w-4 mr-2" />
           New Quote
         </Button>
       </div>
-      
+
       <div className="border rounded-md">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead 
+              <TableHead
                 className="w-[100px] cursor-pointer"
                 onClick={() => handleSort('quoteNumber')}
               >
@@ -264,8 +264,8 @@ export function QuoteList({ className }: QuoteListProps) {
             ) : (
               quotes.map((quote) => (
                 <TableRow key={quote.id} className="cursor-pointer hover:bg-muted/50">
-                  <TableCell 
-                    className="font-medium" 
+                  <TableCell
+                    className="font-medium"
                     onClick={() => handleViewQuote(quote.id)}
                   >
                     {quote.quoteNumber}
@@ -290,7 +290,7 @@ export function QuoteList({ className }: QuoteListProps) {
                     </div>
                   </TableCell>
                   <TableCell className="text-right" onClick={() => handleViewQuote(quote.id)}>
-                    {formatCurrency(parseFloat(quote.total), quote.company?.defaultCurrency || 'IDR')}
+                    {formatCurrency(parseFloat(quote.total), quote.company?.defaultCurrency || 'USD')}
                   </TableCell>
                   <TableCell>
                     <DropdownMenu>
@@ -313,7 +313,7 @@ export function QuoteList({ className }: QuoteListProps) {
                           </DropdownMenuItem>
                         )}
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem 
+                        <DropdownMenuItem
                           className="text-destructive focus:text-destructive"
                           onClick={() => handleDeleteQuote(quote.id)}
                         >
@@ -328,7 +328,7 @@ export function QuoteList({ className }: QuoteListProps) {
           </TableBody>
         </Table>
       </div>
-      
+
       {totalPages > 1 && (
         <div className="flex justify-center mt-4 space-x-2">
           <Button

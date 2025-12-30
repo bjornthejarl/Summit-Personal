@@ -43,10 +43,9 @@ const formatDate = (date: string | Date) => {
 };
 
 const formatCurrency = (amount: number | string) => {
-  // apply id-ID currency format
-  return new Intl.NumberFormat('id-ID', {
+  return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: 'IDR',
+    currency: 'USD',
   }).format(Number(amount));
 };
 
@@ -72,20 +71,20 @@ export const InvoiceEmail: React.FC<InvoiceEmailProps> = ({
               alt="Company Logo"
             />
           </Section>
-          
+
           <Section style={content}>
             <Heading style={heading}>Invoice {invoice.invoiceNumber}</Heading>
-            
+
             <Text style={paragraph}>
               Dear {invoice.client.name},
             </Text>
-            
+
             <Text style={paragraph}>
-              We hope this email finds you well. Please find attached your invoice 
-              {' '}<strong>{invoice.invoiceNumber}</strong> for the amount of 
+              We hope this email finds you well. Please find attached your invoice
+              {' '}<strong>{invoice.invoiceNumber}</strong> for the amount of
               {' '}<strong>{formatCurrency(invoice.total)}</strong>.
             </Text>
-            
+
             <Section style={details}>
               <Row>
                 <Column>Issue Date:</Column>
@@ -100,33 +99,33 @@ export const InvoiceEmail: React.FC<InvoiceEmailProps> = ({
                 <Column align="right">{formatCurrency(invoice.total)}</Column>
               </Row>
             </Section>
-            
+
             <Section style={buttonContainer}>
               <Button style={button} href={viewUrl}>
                 View Invoice
               </Button>
-              
-              <Button style={{...button, backgroundColor: '#34D399'}} href={downloadUrl}>
+
+              <Button style={{ ...button, backgroundColor: '#34D399' }} href={downloadUrl}>
                 Download PDF
               </Button>
-              
+
               {paymentUrl && (
-                <Button style={{...button, backgroundColor: '#3B82F6'}} href={paymentUrl}>
+                <Button style={{ ...button, backgroundColor: '#3B82F6' }} href={paymentUrl}>
                   Pay Now
                 </Button>
               )}
             </Section>
-            
+
             <Hr style={hr} />
-            
+
             <Text style={paragraph}>
               If you have any questions regarding this invoice, please don&apos;t hesitate to contact us.
             </Text>
-            
+
             <Text style={paragraph}>
               Thank you for your business!
             </Text>
-            
+
             <Text style={footer}>
               {invoice.company?.name || 'Your Company'} - {new Date().getFullYear()}
             </Text>

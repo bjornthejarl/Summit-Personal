@@ -66,11 +66,11 @@ export function InvoiceList({ className }: InvoiceListProps) {
       });
 
       const response = await fetch(`/api/invoices?${params}`);
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch invoices');
       }
-      
+
       const data = await response.json();
       setInvoices(data.data || []);
       setTotalPages(Math.ceil(data.total / 10));
@@ -121,9 +121,9 @@ export function InvoiceList({ className }: InvoiceListProps) {
   };
 
   const formatCurrency = (amount: string) => {
-    return new Intl.NumberFormat('id-ID', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'IDR',
+      currency: 'USD',
     }).format(parseFloat(amount));
   };
 
@@ -172,7 +172,7 @@ export function InvoiceList({ className }: InvoiceListProps) {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead 
+              <TableHead
                 className="cursor-pointer hover:bg-muted/50"
                 onClick={() => handleSort('invoiceNumber')}
               >
@@ -181,7 +181,7 @@ export function InvoiceList({ className }: InvoiceListProps) {
                   <span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
                 )}
               </TableHead>
-              <TableHead 
+              <TableHead
                 className="cursor-pointer hover:bg-muted/50"
                 onClick={() => handleSort('clientName')}
               >
@@ -190,7 +190,7 @@ export function InvoiceList({ className }: InvoiceListProps) {
                   <span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
                 )}
               </TableHead>
-              <TableHead 
+              <TableHead
                 className="cursor-pointer hover:bg-muted/50"
                 onClick={() => handleSort('issueDate')}
               >
@@ -199,7 +199,7 @@ export function InvoiceList({ className }: InvoiceListProps) {
                   <span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
                 )}
               </TableHead>
-              <TableHead 
+              <TableHead
                 className="cursor-pointer hover:bg-muted/50"
                 onClick={() => handleSort('dueDate')}
               >
@@ -208,7 +208,7 @@ export function InvoiceList({ className }: InvoiceListProps) {
                   <span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
                 )}
               </TableHead>
-              <TableHead 
+              <TableHead
                 className="cursor-pointer hover:bg-muted/50"
                 onClick={() => handleSort('status')}
               >
@@ -217,7 +217,7 @@ export function InvoiceList({ className }: InvoiceListProps) {
                   <span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
                 )}
               </TableHead>
-              <TableHead 
+              <TableHead
                 className="text-right cursor-pointer hover:bg-muted/50"
                 onClick={() => handleSort('total')}
               >
@@ -243,7 +243,7 @@ export function InvoiceList({ className }: InvoiceListProps) {
               </TableRow>
             ) : (
               invoices.map((invoice) => (
-                <TableRow 
+                <TableRow
                   key={invoice.id}
                   className="cursor-pointer hover:bg-muted/50"
                   onClick={() => router.push(`/invoices/${invoice.id}`)}

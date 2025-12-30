@@ -41,10 +41,9 @@ const formatDate = (date: string | Date) => {
 };
 
 const formatCurrency = (amount: number | string) => {
-  // apply id-ID currency format
-  return new Intl.NumberFormat('id-ID', {
+  return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: 'IDR',
+    currency: 'USD',
   }).format(Number(amount));
 };
 
@@ -70,20 +69,20 @@ export const QuoteEmail: React.FC<QuoteEmailProps> = ({
               alt="Company Logo"
             />
           </Section>
-          
+
           <Section style={content}>
             <Heading style={heading}>Quote {quote.quoteNumber}</Heading>
-            
+
             <Text style={paragraph}>
               Dear {quote.client.name},
             </Text>
-            
+
             <Text style={paragraph}>
-              Thank you for your interest in our services. Please find attached your quote 
-              {' '}<strong>{quote.quoteNumber}</strong> for the amount of 
+              Thank you for your interest in our services. Please find attached your quote
+              {' '}<strong>{quote.quoteNumber}</strong> for the amount of
               {' '}<strong>{formatCurrency(quote.total)}</strong>.
             </Text>
-            
+
             <Section style={details}>
               <Row>
                 <Column>Issue Date:</Column>
@@ -98,33 +97,33 @@ export const QuoteEmail: React.FC<QuoteEmailProps> = ({
                 <Column align="right">{formatCurrency(quote.total)}</Column>
               </Row>
             </Section>
-            
+
             <Section style={buttonContainer}>
               <Button style={button} href={viewUrl}>
                 View Quote
               </Button>
-              
-              <Button style={{...button, backgroundColor: '#34D399'}} href={downloadUrl}>
+
+              <Button style={{ ...button, backgroundColor: '#34D399' }} href={downloadUrl}>
                 Download PDF
               </Button>
-              
+
               {acceptUrl && (
-                <Button style={{...button, backgroundColor: '#3B82F6'}} href={acceptUrl}>
+                <Button style={{ ...button, backgroundColor: '#3B82F6' }} href={acceptUrl}>
                   Accept Quote
                 </Button>
               )}
             </Section>
-            
+
             <Hr style={hr} />
-            
+
             <Text style={paragraph}>
               This quote is valid until {formatDate(quote.expiryDate)}. If you have any questions or would like to discuss this quote further, please feel free to contact us.
             </Text>
-            
+
             <Text style={paragraph}>
               We look forward to working with you!
             </Text>
-            
+
             <Text style={footer}>
               {quote.company?.name || 'Your Company'} - {new Date().getFullYear()}
             </Text>

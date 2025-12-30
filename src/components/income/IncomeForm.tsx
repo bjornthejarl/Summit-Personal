@@ -54,7 +54,7 @@ interface IncomeFormProps {
 export default function IncomeForm({ incomeId }: IncomeFormProps) {
   const router = useRouter();
   const isEditing = !!incomeId;
-  
+
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -62,7 +62,7 @@ export default function IncomeForm({ incomeId }: IncomeFormProps) {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
   const [company, setCompany] = useState<Company | null>(null);
-  
+
   const {
     register,
     handleSubmit,
@@ -83,11 +83,11 @@ export default function IncomeForm({ incomeId }: IncomeFormProps) {
       nextDueDate: new Date(),
     },
   });
-  
+
   const recurringValue = watch("recurring");
   const clientIdValue = watch("clientId");
   const invoiceIdValue = watch("invoiceId");
-  
+
   useEffect(() => {
     const initialize = async () => {
       setIsLoading(true);
@@ -97,7 +97,7 @@ export default function IncomeForm({ incomeId }: IncomeFormProps) {
           fetchClients(),
           fetchCompany()
         ]);
-        
+
         if (incomeId) {
           // Load income data if in edit mode
           await fetchIncome();
@@ -109,10 +109,10 @@ export default function IncomeForm({ incomeId }: IncomeFormProps) {
         setIsLoading(false);
       }
     };
-    
+
     initialize();
   }, [incomeId]);
-  
+
   // Watch for changes in the client selection to filter invoices
   useEffect(() => {
     setSelectedClientId(clientIdValue ? String(clientIdValue) : null);
@@ -123,7 +123,7 @@ export default function IncomeForm({ incomeId }: IncomeFormProps) {
       setValue("invoiceId", 0);
     }
   }, [clientIdValue]);
-  
+
   // Watch for changes in the invoice selection to auto-fill amount
   useEffect(() => {
     if (invoiceIdValue) {
@@ -141,12 +141,12 @@ export default function IncomeForm({ incomeId }: IncomeFormProps) {
       }
     }
   }, [invoiceIdValue, invoices, company?.defaultCurrency, setValue]);
-  
+
   const fetchCategories = async () => {
     try {
       const response = await fetch("/api/income-categories");
       if (!response.ok) throw new Error("Failed to fetch categories");
-      
+
       const data = await response.json();
       setCategories(data.data || []);
     } catch (error) {
@@ -154,12 +154,12 @@ export default function IncomeForm({ incomeId }: IncomeFormProps) {
       toast.error("Failed to load income categories");
     }
   };
-  
+
   const fetchClients = async () => {
     try {
       const response = await fetch("/api/clients");
       if (!response.ok) throw new Error("Failed to fetch clients");
-      
+
       const data = await response.json();
       setClients(data.data || []);
     } catch (error) {
@@ -167,12 +167,12 @@ export default function IncomeForm({ incomeId }: IncomeFormProps) {
       toast.error("Failed to load clients");
     }
   };
-  
+
   const fetchInvoicesByClient = async (clientId: string) => {
     try {
       const response = await fetch(`/api/invoices?clientId=${clientId}&status=paid`);
       if (!response.ok) throw new Error("Failed to fetch invoices");
-      
+
       const data = await response.json();
       setInvoices(data.data || []);
     } catch (error) {
@@ -180,16 +180,16 @@ export default function IncomeForm({ incomeId }: IncomeFormProps) {
       toast.error("Failed to load invoices");
     }
   };
-  
+
   const fetchIncome = async () => {
     setIsLoading(true);
     try {
       const response = await fetch(`/api/income/${incomeId}`);
       if (!response.ok) throw new Error("Failed to fetch income");
-      
+
       const data = await response.json();
       const incomeData = data.income;
-      
+
       // Populate form with income data
       setValue("source", incomeData.source);
       setValue("description", incomeData.description || "");
@@ -200,11 +200,11 @@ export default function IncomeForm({ incomeId }: IncomeFormProps) {
       setValue("clientId", incomeData.clientId);
       setValue("invoiceId", incomeData.invoiceId);
       setValue("recurring", incomeData.recurring);
-      
+
       if (incomeData.nextDueDate) {
         setValue("nextDueDate", new Date(incomeData.nextDueDate));
       }
-      
+
       // If there's a client ID, fetch the related invoices
       if (incomeData.clientId) {
         setSelectedClientId(String(incomeData.clientId));
@@ -218,15 +218,15 @@ export default function IncomeForm({ incomeId }: IncomeFormProps) {
       setIsLoading(false);
     }
   };
-  
+
   const fetchCompany = async () => {
     try {
       const response = await fetch('/api/companies/current');
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch company information');
       }
-      
+
       const data = await response.json();
       setCompany(data);
     } catch (error) {
@@ -234,10 +234,10 @@ export default function IncomeForm({ incomeId }: IncomeFormProps) {
       toast.error('Failed to load company information');
     }
   };
-  
+
   const onSubmit = async (data: IncomeFormValues) => {
     setIsSubmitting(true);
-    
+
     try {
       const incomeData = {
         ...data,
@@ -248,10 +248,10 @@ export default function IncomeForm({ incomeId }: IncomeFormProps) {
         // Only include nextDueDate if recurring is not "none"
         nextDueDate: data.recurring !== "none" ? data.nextDueDate : null,
       };
-      
+
       const url = isEditing ? `/api/income/${incomeId}` : "/api/income";
       const method = isEditing ? "PUT" : "POST";
-      
+
       const response = await fetch(url, {
         method,
         headers: {
@@ -259,12 +259,12 @@ export default function IncomeForm({ incomeId }: IncomeFormProps) {
         },
         body: JSON.stringify(incomeData),
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || "Failed to save income");
       }
-      
+
       toast.success(`Income ${isEditing ? "updated" : "created"} successfully`);
       router.push("/income");
       router.refresh();
@@ -275,7 +275,7 @@ export default function IncomeForm({ incomeId }: IncomeFormProps) {
       setIsSubmitting(false);
     }
   };
-  
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-[400px]">
@@ -283,7 +283,7 @@ export default function IncomeForm({ incomeId }: IncomeFormProps) {
       </div>
     );
   }
-  
+
   return (
     <div className="container mx-auto py-8">
       <Card>
@@ -314,7 +314,7 @@ export default function IncomeForm({ incomeId }: IncomeFormProps) {
                   ))}
                 </select>
               </div>
-              
+
               {/* Invoice (Optional, only if client is selected) */}
               {selectedClientId && (
                 <div className="space-y-2">
@@ -327,13 +327,13 @@ export default function IncomeForm({ incomeId }: IncomeFormProps) {
                     <option value="">Select an invoice (optional)</option>
                     {invoices.map((invoice) => (
                       <option key={invoice.id} value={invoice.id}>
-                        #{invoice.invoiceNumber} - {new Intl.NumberFormat('id-ID', { style: 'currency', currency: company?.defaultCurrency || 'IDR' }).format(parseFloat(invoice.total))}
+                        #{invoice.invoiceNumber} - {new Intl.NumberFormat('en-US', { style: 'currency', currency: company?.defaultCurrency || 'USD' }).format(parseFloat(invoice.total))}
                       </option>
                     ))}
                   </select>
                 </div>
               )}
-              
+
               {/* Source */}
               <div className="space-y-2">
                 <Label htmlFor="source">
@@ -348,7 +348,7 @@ export default function IncomeForm({ incomeId }: IncomeFormProps) {
                   <p className="text-sm text-red-500">{errors.source.message}</p>
                 )}
               </div>
-              
+
               {/* Amount */}
               <div className="space-y-2">
                 <Label htmlFor="amount">
@@ -367,9 +367,8 @@ export default function IncomeForm({ incomeId }: IncomeFormProps) {
                   <select
                     {...register("currency")}
                     className="ml-2 border rounded p-2 w-24"
-                    defaultValue={company?.defaultCurrency || "IDR"}
+                    defaultValue={company?.defaultCurrency || "USD"}
                   >
-                    <option value="IDR">IDR</option>
                     <option value="USD">USD</option>
                     <option value="EUR">EUR</option>
                     <option value="GBP">GBP</option>
@@ -382,7 +381,7 @@ export default function IncomeForm({ incomeId }: IncomeFormProps) {
                   <p className="text-sm text-red-500">{errors.amount.message}</p>
                 )}
               </div>
-              
+
               {/* Income Date */}
               <div className="space-y-2">
                 <Label htmlFor="incomeDate">
@@ -397,7 +396,7 @@ export default function IncomeForm({ incomeId }: IncomeFormProps) {
                   <p className="text-sm text-red-500">{errors.incomeDate.message}</p>
                 )}
               </div>
-              
+
               {/* Category */}
               <div className="space-y-2">
                 <Label htmlFor="categoryId">Category</Label>
@@ -414,7 +413,7 @@ export default function IncomeForm({ incomeId }: IncomeFormProps) {
                   ))}
                 </select>
               </div>
-              
+
               {/* Recurring */}
               <div className="space-y-2">
                 <Label htmlFor="recurring">Recurring</Label>
@@ -430,7 +429,7 @@ export default function IncomeForm({ incomeId }: IncomeFormProps) {
                   <option value="yearly">Yearly</option>
                 </select>
               </div>
-              
+
               {/* Next Due Date (only if recurring) */}
               {recurringValue !== "none" && (
                 <div className="space-y-2">
@@ -443,7 +442,7 @@ export default function IncomeForm({ incomeId }: IncomeFormProps) {
                 </div>
               )}
             </div>
-            
+
             {/* Description */}
             <div className="space-y-2">
               <Label htmlFor="description">Description</Label>
@@ -454,7 +453,7 @@ export default function IncomeForm({ incomeId }: IncomeFormProps) {
                 rows={3}
               />
             </div>
-            
+
             <div className="flex justify-end space-x-4 pt-4">
               <Button
                 type="button"

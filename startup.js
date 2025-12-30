@@ -21,6 +21,15 @@ async function start() {
         // Continue anyway - migration might already be done
     }
 
+    // Run items migration (idempotent - safe to run multiple times)
+    const { runItemsMigration } = require('./scripts/migrate-items.js');
+    try {
+        await runItemsMigration();
+    } catch (error) {
+        console.error('⚠️ Items migration warning:', error.message);
+        // Continue anyway - migration might already be done
+    }
+
     console.log('🌐 Starting Next.js server...');
     require('./server.js');
 }

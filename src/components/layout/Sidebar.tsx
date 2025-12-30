@@ -3,19 +3,21 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  LayoutDashboard,
-  Users,
-  FileText,
-  Receipt,
-  CreditCard,
-  LineChart,
-  Settings,
-  Building,
-  RefreshCw,
-  Tags,
-  FolderTree,
-  Store,
-} from 'lucide-react';
+import {
+    LayoutDashboard,
+    Users,
+    FileText,
+    Receipt,
+    CreditCard,
+    LineChart,
+    Settings,
+    Building,
+    RefreshCw,
+    Tags,
+    FolderTree,
+    Store,
+    Package,
+  } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 
@@ -23,6 +25,7 @@ const navItems = [
   { label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
   { label: 'Clients', icon: Users, href: '/clients', group: 'Configuration' },
   { label: 'Vendors', icon: Store, href: '/vendors', group: 'Configuration' },
+  { label: 'Items', icon: Package, href: '/items', group: 'Configuration' },
   { label: 'Income Categories', icon: Tags, href: '/income-categories', group: 'Configuration' },
   { label: 'Expense Categories', icon: FolderTree, href: '/expense-categories', group: 'Configuration' },
   { label: 'Quotes', icon: FileText, href: '/quotes', group: 'Transactions' },

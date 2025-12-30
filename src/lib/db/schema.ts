@@ -142,6 +142,7 @@ export const invoices = pgTable('invoices', {
 export const invoiceItems = pgTable('invoice_items', {
   id: serial('id').primaryKey(),
   invoiceId: integer('invoice_id').notNull().references(() => invoices.id),
+  itemId: integer('item_id').references(() => items.id), // Optional reference to catalog item
   description: text('description').notNull(),
   quantity: decimal('quantity', { precision: 10, scale: 2 }).notNull(),
   unitPrice: decimal('unit_price', { precision: 10, scale: 2 }).notNull(),
@@ -175,12 +176,28 @@ export const quotes = pgTable('quotes', {
 export const quoteItems = pgTable('quote_items', {
   id: serial('id').primaryKey(),
   quoteId: integer('quote_id').notNull().references(() => quotes.id),
+  itemId: integer('item_id').references(() => items.id), // Optional reference to catalog item
   description: text('description').notNull(),
   quantity: decimal('quantity', { precision: 10, scale: 2 }).notNull(),
   unitPrice: decimal('unit_price', { precision: 10, scale: 2 }).notNull(),
   amount: decimal('amount', { precision: 10, scale: 2 }).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Define reusable items/products catalog
+export const items = pgTable('items', {
+  id: serial('id').primaryKey(),
+  companyId: integer('company_id').notNull().references(() => companies.id),
+  name: varchar('name', { length: 255 }).notNull(),
+  description: text('description'),
+  defaultUnitPrice: decimal('default_unit_price', { precision: 10, scale: 2 }).notNull(),
+  category: varchar('category', { length: 100 }),
+  sku: varchar('sku', { length: 100 }),
+  isActive: boolean('is_active').default(true).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  softDelete: boolean('soft_delete').default(false).notNull(),
 });
 
 // Expense Categories Table

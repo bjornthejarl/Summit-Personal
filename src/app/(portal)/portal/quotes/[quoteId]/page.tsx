@@ -87,9 +87,9 @@ export default async function QuoteDetailPage({
                             </p>
                         </div>
                         <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${quote.status === 'accepted' ? 'bg-green-100 text-green-800' :
-                                quote.status === 'rejected' ? 'bg-red-100 text-red-800' :
-                                    quote.status === 'expired' || isExpired ? 'bg-gray-100 text-gray-800' :
-                                        'bg-blue-100 text-blue-800'
+                            quote.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                                quote.status === 'expired' || isExpired ? 'bg-gray-100 text-gray-800' :
+                                    'bg-blue-100 text-blue-800'
                             }`}>
                             {isExpired && quote.status === 'sent' ? 'Expired' : quote.status}
                         </span>
@@ -161,7 +161,7 @@ export default async function QuoteDetailPage({
                             </div>
                             <div className="flex justify-between text-sm">
                                 <dt className="text-gray-500">Tax</dt>
-                                <dd className="text-gray-900">${parseFloat(quote.tax).toFixed(2)}</dd>
+                                <dd className="text-gray-900">${parseFloat(quote.tax || '0').toFixed(2)}</dd>
                             </div>
                             <div className="flex justify-between text-base font-medium pt-2 border-t border-gray-200">
                                 <dt className="text-gray-900">Total</dt>
